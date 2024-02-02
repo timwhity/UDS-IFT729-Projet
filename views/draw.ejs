@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="customDraw.js" defer></script>
+    <title>White Boarding</title>
+</head>
+
+<body>
+
+
+
+    <div class="btn-container">
+        <button id="clear-btn" class="btn">Clear</button>
+        <button id="black-btn" class="btn">Black</button>
+        <button id="red-btn" class="btn">Red</button>
+        <button id="blue-btn" class="btn">Blue</button>
+        <button id="green-btn" class="btn">Green</button>
+        <input type="color" class="btn" id="color-picker" />
+    </div>
+    <canvas id="my-canvas" height="500" width="500"></canvas>
+
+</body>
+
+</html>
