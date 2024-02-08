@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/home', (req, res) => {
-    res.redirect('draw')
+    res.render('draw')
 })
 
 io.on('connection', (socket) => {
