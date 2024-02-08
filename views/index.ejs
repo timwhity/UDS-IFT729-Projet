@@ -38,6 +38,36 @@
         width: window.innerWidth,
         height: window.innerHeight
     });
+var i = 1;
+//handler for moving objects on canvas
+var moveHandler = function (evt) {
+    var movingObject = evt.target;
+    console.log(movingObject.get('left'), movingObject.get('top'));
+};
+
+//handler for done modifying objects on canvas
+var modifiedHandler = function (evt) {
+    var modifiedObject = evt.target;
+    console.log(modifiedObject.get('left'), modifiedObject.get('top'));
+};
+
+var customEvtHandler = function (evt) {
+    console.log("I was triggered by a custom event.");
+};
+var pathCreatedEvtHandler = function (evt) {
+    console.log("I was triggered by a path created event.", evt);
+	canvas.add(new fabric.Circle({
+         radius: 40,
+         fill: "#9370db",
+         top: 100*i,
+         left: 100,
+      }));
+	i++;
+};
+canvas.on('object:moving', moveHandler);
+canvas.on('object:modified', modifiedHandler);
+canvas.on('custom:event', customEvtHandler);
+canvas.on('path:created', pathCreatedEvtHandler);
 
 
 	let drawing = false;
