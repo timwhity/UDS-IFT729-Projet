@@ -1,188 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" href="style.css"> -->
-    <!-- <script src="/socket.io/socket.io.js" defer></script> -->
-    <!-- <script src="customDraw.js" defer></script> -->
-    <title>White Boarding</title>
-    <style>
-        * {
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-}
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tableau blanc</title>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+	<script src="canvasManager.js"></script>
+	<style>
+        .title {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+			background-color: aquamarine;
+			padding: 10px;
+			border-radius: 20px;
+			border: 2px solid rgb(102, 94, 94);
+        }
 
-.btn-container {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    top: 50%;
-    left: 0;
-    transform: translate(0%, -50%);
-    background: white;
-    border-radius: 0 10px 10px 0;
-    padding: 0 0px 0px 0px;
-}
+		#canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
 
-.btn {
-    background: white;
-    outline: 1px solid #333;
-    height: 40px;
-    width: 80px;
-    border: none;
-    cursor: pointer;
-}
+		.sidebar {
+			position: fixed;
+			top: 50%;
+			left: 50px;
+			transform: translateY(-50%);
+			width: fit-content;
+			height: auto;
+			background-color: rgba(127, 255, 212, 0.623);
+			border: 1px solid black;
+			border-radius: 20px;
+			z-index: 50;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
 
-.btn:hover {
-    font-weight: bold;
-}
+			button {
+				width: 80px;
+				height: 40px;
+				border: none;
+				background-color: white;
+				cursor: pointer;
+				margin: 10px;
+				border-radius: 10px;
+			}
 
-.mt-2 {
-    margin-top: 0.75rem;
-}
+			button:hover {
+				font-weight: bold;
+				border: 1px solid black;
+			}
+		}
 
-.ml-2 {
-    margin-left: 0.75rem;
-}
     </style>
 </head>
-
 <body>
-
-
-
-    <div class="btn-container">
-        <button id="clear-btn" class="btn">Clear</button>
-        <button id="black-btn" class="btn">Black</button>
-        <button id="red-btn" class="btn">Red</button>
-        <button id="blue-btn" class="btn">Blue</button>
-        <button id="green-btn" class="btn">Green</button>
-        <input type="color" class="btn" id="color-picker" />
-    </div>
-    <canvas id="my-canvas" height="500" width="500"></canvas>
-
+	<h1 class="title">Tableau blanc</h1>
+	<div class="sidebar">
+		<button id="addRect">Add Rect</button>
+		<button id="del">Del</button>
+	</div>
+	<canvas id="canvas"></canvas>
 </body>
 
-<script type="importmap">
-    {
-      "imports": {
-        "socket.io-client": "https://cdn.socket.io/4.7.4/socket.io.esm.min.js"
-      }
-    }
-  </script>
-  
-<script type="module">
-import { io } from "socket.io-client";
-const canvas = document.getElementById("my-canvas");
-const socket = io();
+<script>
+	const canvas = new fabric.Canvas('canvas', {
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
 
+	// Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
+	document.getElementById('addRect').addEventListener('click', function() {
+		var rec = new fabric.Rect({
+			left: 100,
+			top: 100,
+			fill: 'red',
+			width: 20,
+			height: 20
+		});
+		canvas.add(rec);
+		canvas.setActiveObject(rec);
+	});
 
-// Variables initialisation with canvas context and all the buttons
-canvas.height = window.innerHeight;
-canvas.width = window.innerWidth;
+	// Fait en sorte que le bouton "delRect" supprime le rectangle sélectionné
+	document.getElementById('del').addEventListener('click', function() {
+		canvas.remove(canvas.getActiveObject());
+	});
 
-const ctx = canvas.getContext("2d");
-
-
-const clearBtn = document.getElementById("clear-btn");
-const redBtn = document.getElementById("red-btn");
-const blueBtn = document.getElementById("blue-btn");
-const greenBtn = document.getElementById("green-btn");
-const blackBtn = document.getElementById("black-btn");
-const colorPicker = document.getElementById("color-picker");
-
-let drawing = false;
-
-let x1, y1; // x1 and y1 represent the coordinates of the point of contact on the 2D canvas
-
-// Event listeners for when the user uses the color picker or any other color as defined in the UI
-colorPicker.addEventListener("blur", (e) => {
-    ctx.strokeStyle = e.target.value;
-    changeColor(e.target.value)
-})
-
-clearBtn.addEventListener("click", () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-})
-redBtn.addEventListener("click", () => {
-    changeColor('#FF0000')
-})
-blueBtn.addEventListener("click", () => {
-    changeColor('#0000FF')
-})
-greenBtn.addEventListener("click", () => {
-    changeColor('#00FF00')
-})
-blackBtn.addEventListener("click", () => {
-    changeColor('#000000')
-})
-
-function changeColor(color) {
-    ctx.strokeStyle = color;
-    colorPicker.value = color;
-}
-
-canvas.addEventListener("mousedown", (e) => {
-    init(e);
-    socket.emit('initialising', { offsetX: e.offsetX, offsetY: e.offsetY })
-})
-canvas.addEventListener("mousemove", (e) => {
-    draw(e);
-    console.log("test")
-    socket.emit('user-drawing', { color: ctx.strokeStyle, offsetX: e.offsetX, offsetY: e.offsetY })
-
-})
-
-canvas.addEventListener("mouseup", (e) => {
-    drawing = false;
-    socket.emit('user-not-drawing')
-})
-
-
-function init(e) {
-    x1 = e.offsetX;
-    y1 = e.offsetY;
-    drawing = true;
-}
-
-function broadCastDraw(e) {
-    let userColor = ctx.strokeStyle
-    ctx.strokeStyle = e.color
-    draw(e)
-    ctx.strokeStyle = userColor
-}
-
-
-function draw(e) {
-    if (drawing) {
-        ctx.beginPath();
-        ctx.moveTo(x1, y1)
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
-        ctx.closePath()
-        x1 = e.offsetX;
-        y1 = e.offsetY;
-
-    }
-
-}
-
-
-socket.on('user-drawing', data => {
-    broadCastDraw(data)
-})
-
-socket.on('initialising', data => {
-    init(data)
-})
-
-socket.on('user-not-drawing', () => {
-    drawing = false
-})
+	var socket = io();
+	var canvasManager = new CanvasManager(canvas, socket);
 </script>
-
 </html>
