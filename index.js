@@ -14,7 +14,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/draw', (req, res) => {
-    res.render('draw')
+
+    let userId = req.query.username;
+    if (!userId || userId === '') {
+        userId = Math.random().toString(36).substring(7);
+    }
+    console.log('userId : ', userId);
+    res.render('draw', { userId: userId });
 })
 
 io.on('connection', (socket) => {
@@ -32,11 +38,17 @@ io.on('connection', (socket) => {
         console.log('object removed');
         socket.broadcast.emit('object removed', data);
     });
-
-
-    // Handle disconnect event
+    socket.on('objects selected', (data) => {
+        console.log('objects selected');
+        socket.broadcast.emit('objects selected', { userId: socket.id, objectIds: data });
+    });
+    socket.on('objects deselected', () => {
+        console.log('objects deselected');
+        socket.broadcast.emit('objects deselected', socket.id);
+    });
     socket.on('disconnect', () => {
-        console.log('A user disconnected');
+        console.log('user ' + socket.id + ' disconnected');
+        socket.broadcast.emit('objects deselected', socket.id);     // On désélectionne les objets de l'utilisateur qui se déconnecte
     });
 });
 
