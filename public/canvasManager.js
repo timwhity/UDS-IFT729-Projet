@@ -38,6 +38,7 @@ class CanvasManager {
             this.logger.warn('Modification unauthorized');
             return;
         }
+        this.logger.debug('emitObjectModified : ' + e.target.id);
         this.socket.emit('object modified', e.target.toObject(['id']));
     }
     emitObjectAdded(e) {        // Objet ajouté par le client
@@ -48,6 +49,7 @@ class CanvasManager {
             this.addedObjectIds.delete(e.target.id);
             return;
         }
+        this.logger.debug('emitObjectAdded : ' + e.target.id);
         this.socket.emit('object added', e.target.toObject(['id']));
     }
     emitObjectRemoved(e) {      // Objet supprimé par le client
@@ -58,14 +60,17 @@ class CanvasManager {
             this.removedObjectIds.delete(e.target.id);
             return;
         }
+        this.logger.debug('emitObjectRemoved : ' + e.target.id);
         this.socket.emit('object removed', e.target.toObject(['id']));
     }
     emitObjectsSelected(e) {    // Objets sélectionnés par le client
         // TODO : check permission
-        this.socket.emit('objects selected', this.canvas.getActiveObjects().map(obj => obj.toObject(['id'])));
+        this.logger.debug('emitObjectsSelected : ' + this.canvas.getActiveObjects().map(obj => obj.id).join(', '));
+        this.socket.emit('objects selected', this.canvas.getActiveObjects().map(obj => obj.id));
         this.modificationAuthorizedObjectIds = new Set(this.canvas.getActiveObjects().map(obj => obj.id));
     }
     emitObjectsDeselected(e) {  // Objets désélectionnés par le client
+        this.logger.debug('emitObjectsDeselected');
         this.socket.emit('objects deselected');
         this.modificationAuthorizedObjectIds = new Set();
     }
@@ -75,20 +80,18 @@ class CanvasManager {
         let canvasObject = this.getObjectById(object.id);
         if (canvasObject) {
             fabric.util.enlivenObjects([object], function(enlivenedObjects) {
+                this.logger.debug('handleObjectModified : ' + enlivenedObjects[0].id);
                 canvasObject.set(enlivenedObjects[0].toObject(['id']));
                 this.canvas.renderAll();
             }.bind(this));
+        } else {
+            this.logger.warn('DESYNC : handleObjectModified : Object not found in canvas');
         }
     }
     handleObjectAdded(object) {         // Objet ajouté par un autre utilisateur
         this.addedObjectIds.add(object.id);
         fabric.util.enlivenObjects([object], function(enlivenedObjects) {
-            // Ajouter l'objet à la liste des objets sélectionnés par d'autres utilisateurs ????
-            // this.selectedByOthersObjectIds.set(object.id, []);
-            // this.updateSelectionRender();
-
-            console.log('handleObjectAdded : ', enlivenedObjects[0]);
-
+            this.logger.debug('handleObjectAdded : ' + enlivenedObjects[0].id);
             this.canvas.add(enlivenedObjects[0]);
             this.canvas.renderAll();
         }.bind(this));
@@ -97,6 +100,7 @@ class CanvasManager {
         this.removedObjectIds.add(object.id);
         let canvasObject = this.getObjectById(object.id);
         if (canvasObject) {
+            this.logger.debug('handleObjectRemoved : ' + canvasObject.id);
             this.canvas.remove(canvasObject);
             this.canvas.renderAll();
         } else {
@@ -107,13 +111,14 @@ class CanvasManager {
         var objectIds = event.objectIds;
         var userId = event.userId;
         
-        this.logger.debug('handleObjectsSelected : User ' + userId + ' selected objects ' + objectIds);
+        this.logger.debug('handleObjectsSelected : User ' + userId + ' selected objects ' + objectIds.join(', '));
         console.log(objectIds);
 
-        this.selectedByOthersObjectIds.set(userId, objectIds.map(obj => obj.id));
+        this.selectedByOthersObjectIds.set(userId, objectIds);
         this.canvas.renderAll();
     }
     handleObjectsDeselected(userId) {   // Objets désélectionnés par un autre utilisateur
+        this.logger.debug('handleObjectsDeselected : User ' + userId + ' deselected all objects');
         this.selectedByOthersObjectIds.delete(userId);
         this.canvas.renderAll();
     }
@@ -136,15 +141,21 @@ class CanvasManager {
 
                 // Vérifier si l'objet ne peut déjà pas être sélectionné
                 if (canvasObject.selectable || canvasObject.evented) {
+                    this.logger.debug('Object ' + canvasObject.id + ' is now unselectable');
                     canvasObject.set('selectable', false);
                     canvasObject.set('evented', false);
                 }
 
                 // Vérifiez si la sélection existe déjà
+                console.log('Vérifiez si la sélection existe déjà : ', canvasObject.id);
+                console.log('this.canvas.getObjects() : ', this.canvas.getObjects().map(obj => obj.id));
+                console.log(this.selectedByOthersObjectIds);
+
                 let existingSelection = this.canvas.getObjects().find(obj => obj.id === 'selectionRec-' + canvasObject.id);
                 if (!existingSelection) {
+                    this.logger.debug('Creating selection for object ' + canvasObject.id);
                     let selection = new fabric.Rect({
-                        id: "selectionRec-" + canvasObject.id,
+                        id: 'selectionRec-' + canvasObject.id,
                         left: canvasObject.left - 10,
                         top: canvasObject.top - 10,
                         width: canvasObject.width + 20,
@@ -159,19 +170,19 @@ class CanvasManager {
                 }
 
                 // Vérifiez si l'étiquette existe déjà
-                let existingLabel = this.canvas.getObjects().find(obj => obj.id === 'selectionLabel-' + canvasObject.id);
-                if (!existingLabel) {
-                    let label = new fabric.Text(userId, {
-                        id: 'selectionLabel-' + canvasObject.id,
-                        left: canvasObject.left,
-                        top: canvasObject.top - 20,
-                        fontSize: 12,
-                        fill: 'rgba(0,0,255,0.5)',
-                        selectable: false,
-                        evented: false
-                    });
-                    this.canvas.add(label);
-                }
+                // let existingLabel = this.canvas.getObjects().find(obj => obj.id === 'selectionLabel-' + canvasObject.id);
+                // if (!existingLabel) {
+                //     let label = new fabric.Text(userId, {
+                //         id: 'selectionLabel-' + canvasObject.id,
+                //         left: canvasObject.left,
+                //         top: canvasObject.top - 20,
+                //         fontSize: 12,
+                //         fill: 'rgba(0,0,255,0.5)',
+                //         selectable: false,
+                //         evented: false
+                //     });
+                //     this.canvas.add(label);
+                // }
             });
         });
 
@@ -183,13 +194,11 @@ class CanvasManager {
                 } else {
                     let objectId = obj.id.split('-')[1];
                     if (!this.selectedByOthersObjectIds.has(objectId)) {
+                        this.logger.debug('Removing selection for object ' + objectId);
                         this.canvas.remove(obj);
                     }
                 }
             }
         });
-
-        console.log(this.selectedByOthersObjectIds);
-        console.log(this.canvas.getObjects());
     }
 }

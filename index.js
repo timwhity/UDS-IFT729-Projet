@@ -34,21 +34,21 @@ app.get('/draw', (req, res) => {
 io.on('connection', (socket) => {
     console.log('A user connected with socket : ', socket.id);
 
-    socket.on('object modified', (data) => {
+    socket.on('object modified', (object) => {
         logger.debug('object modified');
-        socket.broadcast.emit('object modified', data);
+        socket.broadcast.emit('object modified', object);
     });
-    socket.on('object added', (data) => {
+    socket.on('object added', (object) => {
         logger.debug('object added');
-        socket.broadcast.emit('object added', data);
+        socket.broadcast.emit('object added', object);
     });
-    socket.on('object removed', (data) => {
+    socket.on('object removed', (object) => {
         logger.debug('object removed');
-        socket.broadcast.emit('object removed', data);
+        socket.broadcast.emit('object removed', object);
     });
-    socket.on('objects selected', (data) => {
+    socket.on('objects selected', (objectIds) => {
         logger.debug('objects selected');
-        socket.broadcast.emit('objects selected', { userId: socket.id, objectIds: data });
+        socket.broadcast.emit('objects selected', { userId: socket.id, objectIds: objectIds });
     });
     socket.on('objects deselected', () => {
         logger.debug('objects deselected');
