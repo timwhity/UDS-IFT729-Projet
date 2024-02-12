@@ -4,6 +4,8 @@ const server = require('http').Server(app)
 const port = 3000;
 const io = require('socket.io')(server);
 
+const logLevel = 'DEBUG';
+const logMode = 'ALERT';
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -20,7 +22,11 @@ app.get('/draw', (req, res) => {
         userId = Math.random().toString(36).substring(7);
     }
     console.log('userId : ', userId);
-    res.render('draw', { userId: userId });
+    res.render('draw', {
+        userId: userId,
+        logLevel: logLevel,
+        logMode: logMode
+    });
 })
 
 io.on('connection', (socket) => {
