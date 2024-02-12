@@ -6,6 +6,8 @@ const io = require('socket.io')(server);
 
 const logLevel = 'DEBUG';
 const logMode = 'ALERT';
+var Logger = require('./public/logger.js');
+var logger = new Logger(logLevel, logMode, 'Serveur');
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -33,32 +35,30 @@ io.on('connection', (socket) => {
     console.log('A user connected with socket : ', socket.id);
 
     socket.on('object modified', (data) => {
-        console.log('object modified');
+        logger.debug('object modified');
         socket.broadcast.emit('object modified', data);
     });
     socket.on('object added', (data) => {
-        console.log('object added');
+        logger.debug('object added');
         socket.broadcast.emit('object added', data);
     });
     socket.on('object removed', (data) => {
-        console.log('object removed');
+        logger.debug('object removed');
         socket.broadcast.emit('object removed', data);
     });
     socket.on('objects selected', (data) => {
-        console.log('objects selected');
+        logger.debug('objects selected');
         socket.broadcast.emit('objects selected', { userId: socket.id, objectIds: data });
     });
     socket.on('objects deselected', () => {
-        console.log('objects deselected');
+        logger.debug('objects deselected');
         socket.broadcast.emit('objects deselected', socket.id);
     });
     socket.on('disconnect', () => {
-        console.log('user ' + socket.id + ' disconnected');
+        console.log('A user disconnected with socket : ', socket.id);
         socket.broadcast.emit('objects deselected', socket.id);     // On désélectionne les objets de l'utilisateur qui se déconnecte
     });
 });
-
-
 
 server.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);

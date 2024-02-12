@@ -5,7 +5,7 @@ class Logger {
 	MODES = ['CONSOLE', 'FILE', 'ALERT'];
 
 
-	constructor(level, mode) {
+	constructor(level, mode, prefix = "") {
 		if (!this.LEVELS.includes(level)) {
 			throw new Error('Invalid level');
 		}
@@ -13,8 +13,16 @@ class Logger {
 			throw new Error('Invalid mode');
 		}
 
+		if (mode === 'FILE') {
+			throw new Error('Not implemented yet');
+		}
+		if (mode === 'ALERT' && prefix === "Serveur") {		// Prefix "Serveur" interdit en mode ALERT
+			this.mode = 'CONSOLE';
+		}
+
 		this.mode = mode;
 		this.level = level;
+		this.prefix = prefix;
 
 		this.debug('Logger initialized');
 	}
@@ -41,7 +49,7 @@ class Logger {
 		if (this.LEVELS.indexOf(level) < this.LEVELS.indexOf(this.level)) {
 			return;
 		}
-		this.intern_log(level + " » " + message, level);
+		this.intern_log(level + " " + this.prefix + " » " + message, level);
 	}
 
 	debug(message) {
@@ -57,3 +65,5 @@ class Logger {
 		this.log(message, 'ERROR');
 	}
 }
+
+module.exports = Logger;

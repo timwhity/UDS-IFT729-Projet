@@ -22,10 +22,18 @@ class CanvasManager {
         this.canvas.on('object:removed', this.emitObjectRemoved.bind(this));
         this.canvas.on('selection:created', this.emitObjectsSelected.bind(this));
         this.canvas.on('selection:cleared', this.emitObjectsDeselected.bind(this));
+
+        // Rerender
+        this.canvas.on('before:render', function() {
+            this.updateSelectionRender();
+        }.bind(this));
     }
 
     //============================= CLIENT -> SERVER =============================
     emitObjectModified(e) {     // Objet modifié par le client
+        if (e.target.id.startsWith('selection')) {     // Si l'objet modifié est une sélection, on ne la renvoie pas
+            return;
+        }
         if (!this.modificationAuthorizedObjectIds.has(e.target.id)) {
             this.logger.warn('Modification unauthorized');
             return;
@@ -33,20 +41,27 @@ class CanvasManager {
         this.socket.emit('object modified', e.target.toObject(['id']));
     }
     emitObjectAdded(e) {        // Objet ajouté par le client
-        if (this.addedObjectIds.has(e.target.id)) {
+        if (e.target.id.startsWith('selection')) {     // Si l'objet ajouté est une sélection, on ne la renvoie pas
+            return;
+        }
+        if (this.addedObjectIds.has(e.target.id)) {     // Si la création de l'objet a été envoyée par le serveur, on ne la renvoie pas
             this.addedObjectIds.delete(e.target.id);
             return;
         }
         this.socket.emit('object added', e.target.toObject(['id']));
     }
     emitObjectRemoved(e) {      // Objet supprimé par le client
-        if (this.removedObjectIds.has(e.target.id)) {
+        if (e.target.id.startsWith('selection')) {     // Si l'objet supprimé est une sélection, on ne la renvoie pas
+            return;
+        }
+        if (this.removedObjectIds.has(e.target.id)) {   // Si la suppression de l'objet a été envoyée par le serveur, on ne la renvoie pas
             this.removedObjectIds.delete(e.target.id);
             return;
         }
         this.socket.emit('object removed', e.target.toObject(['id']));
     }
     emitObjectsSelected(e) {    // Objets sélectionnés par le client
+        // TODO : check permission
         this.socket.emit('objects selected', this.canvas.getActiveObjects().map(obj => obj.toObject(['id'])));
         this.modificationAuthorizedObjectIds = new Set(this.canvas.getActiveObjects().map(obj => obj.id));
     }
@@ -91,21 +106,16 @@ class CanvasManager {
     handleObjectsSelected(event) {      // Objets sélectionnés par un autre utilisateur
         var objectIds = event.objectIds;
         var userId = event.userId;
+        
+        this.logger.debug('handleObjectsSelected : User ' + userId + ' selected objects ' + objectIds);
+        console.log(objectIds);
 
-        if (userId === this.socket.id) {
-            console.log('Est-ce normal ??? handleObjectsSelected : User selected objects');
-            return;
-        }
-
-        // Mettre à jour la sémection de l'utilisateur
-        this.selectedByOthersObjectIds.set(userId, objectIds);
-
-        // Mettre à jour le rendu des objets sélectionnés
-        this.updateSelectionRender();
+        this.selectedByOthersObjectIds.set(userId, objectIds.map(obj => obj.id));
+        this.canvas.renderAll();
     }
     handleObjectsDeselected(userId) {   // Objets désélectionnés par un autre utilisateur
         this.selectedByOthersObjectIds.delete(userId);
-        this.updateSelectionRender();
+        this.canvas.renderAll();
     }
 
     //============================= OTHERS =============================
@@ -114,40 +124,72 @@ class CanvasManager {
     }
 
     updateSelectionRender() {
-        console.log('updateSelectionRender');
-        console.log(this.selectedByOthersObjectIds);
-        console.log(this.canvas.getObjects());
-
-        this.canvas.getObjects().forEach(obj => {
-            if (obj.id === 'selection') {
-                this.canvas.remove(obj);
-            }
-        });
+        this.logger.debug('updateSelectionRender');
 
         this.selectedByOthersObjectIds.forEach((objectIds, userId) => {
             objectIds.forEach(objectId => {
                 let canvasObject = this.getObjectById(objectId);
-                if (canvasObject) {
+                if (!canvasObject) {
+                    this.logger.warn('DESYNC : updateSelectionRender : Object not found in canvas');
+                    return;
+                }
+
+                // Vérifier si l'objet ne peut déjà pas être sélectionné
+                if (canvasObject.selectable || canvasObject.evented) {
+                    canvasObject.set('selectable', false);
+                    canvasObject.set('evented', false);
+                }
+
+                // Vérifiez si la sélection existe déjà
+                let existingSelection = this.canvas.getObjects().find(obj => obj.id === 'selectionRec-' + canvasObject.id);
+                if (!existingSelection) {
                     let selection = new fabric.Rect({
-                        id: 'selection',
-                        left: canvasObject.left,
-                        top: canvasObject.top,
-                        width: canvasObject.width,
-                        height: canvasObject.height,
+                        id: "selectionRec-" + canvasObject.id,
+                        left: canvasObject.left - 10,
+                        top: canvasObject.top - 10,
+                        width: canvasObject.width + 20,
+                        height: canvasObject.height + 20,
                         fill: 'rgba(0,0,0,0)',
                         stroke: 'rgba(0,0,255,0.5)',
                         strokeWidth: 2,
-                        strokeDashArray: [5, 5],
                         selectable: false,
                         evented: false
                     });
                     this.canvas.add(selection);
-                } else {
-                    this.logger.warn('WARNING DESYNC : updateSelectionRender : Object not found in canvas');
+                }
+
+                // Vérifiez si l'étiquette existe déjà
+                let existingLabel = this.canvas.getObjects().find(obj => obj.id === 'selectionLabel-' + canvasObject.id);
+                if (!existingLabel) {
+                    let label = new fabric.Text(userId, {
+                        id: 'selectionLabel-' + canvasObject.id,
+                        left: canvasObject.left,
+                        top: canvasObject.top - 20,
+                        fontSize: 12,
+                        fill: 'rgba(0,0,255,0.5)',
+                        selectable: false,
+                        evented: false
+                    });
+                    this.canvas.add(label);
                 }
             });
         });
 
-        this.canvas.renderAll();
+        // Supprimer les sélections et les étiquettes des objets qui ne sont plus sélectionnés
+        this.canvas.getObjects().forEach(obj => {
+            if (obj.id.startsWith('selection')) {
+                if (this.selectedByOthersObjectIds.size === 0) {
+                    this.canvas.remove(obj);
+                } else {
+                    let objectId = obj.id.split('-')[1];
+                    if (!this.selectedByOthersObjectIds.has(objectId)) {
+                        this.canvas.remove(obj);
+                    }
+                }
+            }
+        });
+
+        console.log(this.selectedByOthersObjectIds);
+        console.log(this.canvas.getObjects());
     }
 }
