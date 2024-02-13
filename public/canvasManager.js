@@ -24,8 +24,12 @@ class CanvasManager {
         this.canvas.on('selection:cleared', this.emitObjectsDeselected.bind(this));
 
         // Rerender
-        this.canvas.on('before:render', function() {
-            this.updateSelectionRender();
+        this.canvas.contextContainer.strokeStyle = '#555';
+        // this.canvas.on('before:render', function() {
+        //     this.updateSelectionRender();
+        // }.bind(this));
+        this.canvas.on('after:render', function() {
+            this.updateSelectionRenderbis();
         }.bind(this));
     }
 
@@ -108,19 +112,99 @@ class CanvasManager {
         }
     }
     handleObjectsSelected(event) {      // Objets sélectionnés par un autre utilisateur
-        var objectIds = event.objectIds;
-        var userId = event.userId;
-        
-        this.logger.debug('handleObjectsSelected : User ' + userId + ' selected objects ' + objectIds.join(', '));
-        console.log(objectIds);
+        var userId = event.userId;                                               // Id de l'utilisateur sélectionnant les objets
+        let oldSelectionByUser = this.selectedByOthersObjectIds.get(userId) || [];     // Ancienne sélection de l'utilisateur
+        let newSelectionByUser =  event.objectIds;                               // Nouvelle sélection de l'utilisateur
+        this.handleSelectionModification(oldSelectionByUser, newSelectionByUser, userId);
 
-        this.selectedByOthersObjectIds.set(userId, objectIds);
-        this.canvas.renderAll();
+        // this.selectedByOthersObjectIds.set(userId, objectIds);
+        // this.logger.debug('handleObjectsSelected : selectedByOthersObjectIds : ');
+        // console.log(this.selectedByOthersObjectIds);
+        // console.log(this.selectedByOthersObjectIds.get(userId));
+        // this.canvas.renderAll();
     }
     handleObjectsDeselected(userId) {   // Objets désélectionnés par un autre utilisateur
-        this.logger.debug('handleObjectsDeselected : User ' + userId + ' deselected all objects');
-        this.selectedByOthersObjectIds.delete(userId);
+    //     this.logger.debug('handleObjectsDeselected : User ' + userId + ' deselected all objects');
+    //     this.selectedByOthersObjectIds.delete(userId);
+    //     this.canvas.renderAll();
+        let oldSelectionByUser = this.selectedByOthersObjectIds.get(userId) || [];
+        this.handleSelectionModification(oldSelectionByUser, [], userId);
+        
+    }
+    handleSelectionModification(oldSelection, newSelection, userId) {
+
+        // Supprimer les objets désélectionnés
+        // oldSelection.forEach(objectId => {
+        //     if (!newSelection.includes(objectId)) {
+        //         let canvasObject = this.getObjectById(objectId);                          // Objet désélectionné
+        //         let selectionRec = this.getObjectById('selectionRec|' + objectId);        // Sélection de l'objet
+        //         let selectionLabel = this.getObjectById('selectionLabel|' + objectId);    // Étiquette de l'objet
+        //         if (!canvasObject) {
+        //             this.logger.warn('DESYNC : handleSelectionModification : Object not found in canvas');
+        //             return;
+        //         }
+        //         this.logger.debug('Object ' + canvasObject.id + ' is now selectable');
+        //         canvasObject.set('selectable', true);
+        //         canvasObject.set('evented', true);
+        //         if (!selectionRec) {
+        //             this.logger.warn('DESYNC : handleSelectionModification : Selection not found in canvas');
+        //             return;
+        //         }
+        //         if (!selectionLabel) {
+        //             this.logger.warn('DESYNC : handleSelectionModification : Label not found in canvas');
+        //             return;
+        //         }
+        //         this.logger.debug('Removing selection ' + selectionRec.id + ' for object ' + objectId);
+        //         this.canvas.remove(selectionRec);
+        //         this.logger.debug('Removing label ' + selectionLabel.id + ' for object ' + objectId);
+        //         this.canvas.remove(selectionLabel);
+        //     }
+        // });
+
+        // // Ajouter les objets sélectionnés
+        // newSelection.forEach(objectId => {
+        //     if (!oldSelection.includes(objectId)) {
+        //         let canvasObject = this.getObjectById(objectId);                          // Objet sélectionné
+        //         if (!canvasObject) {
+        //             this.logger.warn('DESYNC : handleSelectionModification : Object not found in canvas');
+        //             return;
+        //         }
+        //         this.logger.debug('Object ' + canvasObject.id + ' is now unselectable');
+        //         canvasObject.set('selectable', false);
+        //         canvasObject.set('evented', false);
+
+        //         this.logger.debug('Creating selection for object ' + canvasObject.id);
+        //         let selection = new fabric.Rect({
+        //             id: 'selectionRec|' + canvasObject.id,
+        //             left: canvasObject.left - 10,
+        //             top: canvasObject.top - 10,
+        //             width: canvasObject.width + 20,
+        //             height: canvasObject.height + 20,
+        //             fill: 'rgba(0,0,0,0)',
+        //             stroke: 'rgba(0,0,255,0.5)',
+        //             strokeWidth: 2,
+        //             selectable: false,
+        //             evented: false
+        //         });
+        //         this.canvas.add(selection);
+
+        //         let label = new fabric.Text(userId, {
+        //             id: 'selectionLabel|' + canvasObject.id,
+        //             left: canvasObject.left,
+        //             top: canvasObject.top | 20,
+        //             fontSize: 12,
+        //             fill: 'rgba(0,0,255,0.5)',
+        //             selectable: false,
+        //             evented: false
+        //         });
+        //         this.canvas.add(label);
+        //     }
+        // });
+
+        // Mettre à jour la sélection
+        this.selectedByOthersObjectIds.set(userId, newSelection);
         this.canvas.renderAll();
+        
     }
 
     //============================= OTHERS =============================
@@ -128,77 +212,61 @@ class CanvasManager {
         return this.canvas.getObjects().find(obj => obj.id === id);
     }
 
+    updateSelectionRenderbis() {
+        this.logger.debug('updateSelectionRenderBis');
+
+        this.canvas.getObjects().forEach(obj => {
+            this.selectedByOthersObjectIds.forEach((objectIds, userId) => {
+                if (objectIds.includes(obj.id)) {
+                    this.logger.debug('Rendering selection for object ' + obj.id);
+                    var bound = obj.getBoundingRect();
+                    this.canvas.contextContainer.strokeRect(
+                        bound.left + 0.5,
+                        bound.top + 0.5,
+                        bound.width,
+                        bound.height
+                    );
+                }
+            });
+        });
+
+    }
+
     updateSelectionRender() {
         this.logger.debug('updateSelectionRender');
 
         this.selectedByOthersObjectIds.forEach((objectIds, userId) => {
+            // Mettre à jour les sélections
             objectIds.forEach(objectId => {
-                let canvasObject = this.getObjectById(objectId);
+                let canvasObject = this.getObjectById(objectId);                          // Objet sélectionné
+                let selectionRec = this.getObjectById('selectionRec|' + objectId);        // Sélection de l'objet
+                let selectionLabel = this.getObjectById('selectionLabel|' + objectId);    // Étiquette de l'objet
                 if (!canvasObject) {
                     this.logger.warn('DESYNC : updateSelectionRender : Object not found in canvas');
                     return;
                 }
-
-                // Vérifier si l'objet ne peut déjà pas être sélectionné
-                if (canvasObject.selectable || canvasObject.evented) {
-                    this.logger.debug('Object ' + canvasObject.id + ' is now unselectable');
-                    canvasObject.set('selectable', false);
-                    canvasObject.set('evented', false);
+                if (!selectionRec) {
+                    this.logger.warn('DESYNC : updateSelectionRender : Selection not found in canvas');
+                    return;
                 }
-
-                // Vérifiez si la sélection existe déjà
-                console.log('Vérifiez si la sélection existe déjà : ', canvasObject.id);
-                console.log('this.canvas.getObjects() : ', this.canvas.getObjects().map(obj => obj.id));
-                console.log(this.selectedByOthersObjectIds);
-
-                let existingSelection = this.canvas.getObjects().find(obj => obj.id === 'selectionRec-' + canvasObject.id);
-                if (!existingSelection) {
-                    this.logger.debug('Creating selection for object ' + canvasObject.id);
-                    let selection = new fabric.Rect({
-                        id: 'selectionRec-' + canvasObject.id,
-                        left: canvasObject.left - 10,
-                        top: canvasObject.top - 10,
-                        width: canvasObject.width + 20,
-                        height: canvasObject.height + 20,
-                        fill: 'rgba(0,0,0,0)',
-                        stroke: 'rgba(0,0,255,0.5)',
-                        strokeWidth: 2,
-                        selectable: false,
-                        evented: false
-                    });
-                    this.canvas.add(selection);
+                if (!selectionLabel) {
+                    this.logger.warn('DESYNC : updateSelectionRender : Label not found in canvas');
+                    return;
                 }
+                
+                let boundingRect = canvasObject.getBoundingRect();
 
-                // Vérifiez si l'étiquette existe déjà
-                // let existingLabel = this.canvas.getObjects().find(obj => obj.id === 'selectionLabel-' + canvasObject.id);
-                // if (!existingLabel) {
-                //     let label = new fabric.Text(userId, {
-                //         id: 'selectionLabel-' + canvasObject.id,
-                //         left: canvasObject.left,
-                //         top: canvasObject.top - 20,
-                //         fontSize: 12,
-                //         fill: 'rgba(0,0,255,0.5)',
-                //         selectable: false,
-                //         evented: false
-                //     });
-                //     this.canvas.add(label);
-                // }
+                selectionRec.set('left', boundingRect.left - 10);
+                selectionRec.set('top', boundingRect.top - 10);
+                selectionRec.set('width', boundingRect.width + 20);
+                selectionRec.set('height', boundingRect.height + 20);
+
+                selectionLabel.set('left', canvasObject.left);
+                selectionLabel.set('top', canvasObject.top - 20);
+                
+                
+               
             });
-        });
-
-        // Supprimer les sélections et les étiquettes des objets qui ne sont plus sélectionnés
-        this.canvas.getObjects().forEach(obj => {
-            if (obj.id.startsWith('selection')) {
-                if (this.selectedByOthersObjectIds.size === 0) {
-                    this.canvas.remove(obj);
-                } else {
-                    let objectId = obj.id.split('-')[1];
-                    if (!this.selectedByOthersObjectIds.has(objectId)) {
-                        this.logger.debug('Removing selection for object ' + objectId);
-                        this.canvas.remove(obj);
-                    }
-                }
-            }
         });
     }
 }
