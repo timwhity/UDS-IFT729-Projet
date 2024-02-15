@@ -1,29 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <script src="/socket.io/socket.io.js" defer></script>
-    <script src="customDraw.js" defer></script>
-    <title>White Boarding</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tableau blanc</title>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+	<script src="canvasManager.js"></script>
+	<script src="logger.js"></script>
+	<style>
+        .title {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+			background-color: aquamarine;
+			padding: 10px;
+			border-radius: 20px;
+			border: 2px solid rgb(102, 94, 94);
+        }
+
+		#canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+		.sidebar {
+			position: fixed;
+			top: 50%;
+			left: 50px;
+			transform: translateY(-50%);
+			width: fit-content;
+			height: auto;
+			background-color: rgba(127, 255, 212, 0.623);
+			border: 1px solid black;
+			border-radius: 20px;
+			z-index: 50;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+
+			button {
+				width: 80px;
+				height: 40px;
+				border: none;
+				background-color: white;
+				cursor: pointer;
+				margin: 10px;
+				border-radius: 10px;
+			}
+
+			button:hover {
+				font-weight: bold;
+				border: 1px solid black;
+			}
+		}
+
+    </style>
 </head>
-
 <body>
-
-
-
-    <div class="btn-container">
-        <button id="clear-btn" class="btn">Clear</button>
-        <button id="black-btn" class="btn">Black</button>
-        <button id="red-btn" class="btn">Red</button>
-        <button id="blue-btn" class="btn">Blue</button>
-        <button id="green-btn" class="btn">Green</button>
-        <input type="color" class="btn" id="color-picker" />
-    </div>
-    <canvas id="my-canvas" height="500" width="500"></canvas>
-
+	<h1 class="title">Tableau blanc</h1>
+	<div class="sidebar">
+		<button id="addRect">Add Rect</button>
+		<button id="del">Del</button>
+	</div>
+	<canvas id="canvas"></canvas>
 </body>
 
+<script>
+	const canvas = new fabric.Canvas('canvas', {
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+	const userId = '<%- userId %>';
+	let id = 0;
+	function genId() {
+		return userId + '-' + id++ + '-' + Math.floor(Math.random() * 1000);
+	}
+
+	// Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
+	document.getElementById('addRect').addEventListener('click', function() {
+		var rec = new fabric.Rect({
+			left: 100,
+			top: 100,
+			fill: 'red',
+			width: 20,
+			height: 20,
+			id: genId()
+		});
+		console.log(rec.id);
+		canvas.add(rec);
+		canvas.setActiveObject(rec);
+	});
+
+	// Fait en sorte que le bouton "delRect" supprime le rectangle sélectionné
+	document.getElementById('del').addEventListener('click', function() {
+		canvas.remove(canvas.getActiveObject());
+	});
+
+	var socket = io();
+	var logger = new Logger('<%- logLevel %>', '<%- logMode %>');
+	var canvasManager = new CanvasManager(canvas, socket, logger);
+</script>
 </html>
