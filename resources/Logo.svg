@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="38.257309mm"
+   height="25.955833mm"
+   viewBox="0 0 38.257309 25.955833"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   sodipodi:docname="Logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="5.8511223"
+     inkscape:cx="54.092186"
+     inkscape:cy="46.230447"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g3">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="38.257309"
+       height="25.955833"
+       id="page5"
+       margin="0 63.668697 0 0"
+       bleed="0" />
+    <inkscape:page
+       x="43.229599"
+       y="19.625151"
+       width="0"
+       height="0"
+       id="page6"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <linearGradient
+       id="linearGradient218"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#ededed;stop-opacity:1;"
+         offset="0"
+         id="stop218" />
+      <stop
+         style="stop-color:#d6d6d6;stop-opacity:1;"
+         offset="1"
+         id="stop219" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient218"
+       id="linearGradient219"
+       x1="61.365829"
+       y1="62.086025"
+       x2="99.388908"
+       y2="87.634895"
+       gradientUnits="userSpaceOnUse"
+       spreadMethod="pad" />
+  </defs>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-62.627551,-57.5293)">
+    <g
+       id="g3"
+       transform="translate(1.4911324,-4.4210653)">
+      <rect
+         style="fill:url(#linearGradient219);fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.165;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         id="rect2"
+         width="37.622414"
+         height="25.322777"
+         x="61.498333"
+         y="62.221684"
+         ry="3.3462226"
+         rx="3.6175411" />
+      <rect
+         style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.055;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         id="rect3"
+         width="36.331955"
+         height="24.286955"
+         x="62.104523"
+         y="-87.006477"
+         ry="3.2093463"
+         rx="3.4934585"
+         transform="matrix(1,0,0,-1,7.6666669e-7,-1.075e-6)" />
+    </g>
+    <g
+       id="g5"
+       transform="matrix(1.2558997,-0.06607203,0.35071917,1.4346008,-40.64938,-29.359807)"
+       inkscape:transform-center-x="-11.198119"
+       inkscape:transform-center-y="6.7920267"
+       style="display:inline">
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.73078px;font-family:'Lucida Handwriting';-inkscape-font-specification:'Lucida Handwriting';fill:#000000;fill-opacity:1;stroke-width:0.560897"
+         x="72.647896"
+         y="66.493774"
+         id="text1"
+         transform="scale(0.90843197,1.1007979)"><tspan
+           sodipodi:role="line"
+           id="tspan1"
+           style="fill:#000000;fill-opacity:1;stroke-width:0.560897"
+           x="72.647896"
+           y="66.493774">White</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.03088px;font-family:'Lucida Handwriting';-inkscape-font-specification:'Lucida Handwriting';fill:#000000;stroke-width:0.502573"
+         x="71.197037"
+         y="79.143272"
+         id="text2"
+         transform="matrix(0.96730209,-0.06389052,0,1.0338032,0,0)"><tspan
+           sodipodi:role="line"
+           id="tspan2"
+           style="stroke-width:0.502573"
+           x="71.197037"
+           y="79.143272">Space</tspan></text>
+    </g>
+  </g>
+</svg>
