@@ -33,6 +33,7 @@ app.get('/draw', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket : ', socket.id);
+    socket.broadcast.emit('user connected', socket.id);
 
     socket.on('object modified', (object) => {
         logger.debug('object modified');
@@ -56,7 +57,8 @@ io.on('connection', (socket) => {
     });
     socket.on('disconnect', () => {
         console.log('A user disconnected with socket : ', socket.id);
-        socket.broadcast.emit('objects deselected', socket.id);     // On désélectionne les objets de l'utilisateur qui se déconnecte
+        // socket.broadcast.emit('objects deselected', socket.id);     // On désélectionne les objets de l'utilisateur qui se déconnecte
+        socket.broadcast.emit('user disconnected', socket.id);
     });
 });
 
