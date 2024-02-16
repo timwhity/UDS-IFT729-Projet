@@ -1,35 +1,47 @@
-const express = require('express');
-const app = express();
+
 const server = require('http').Server(app)
 const port = 3000;
-const io = require('socket.io')(server);
+
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
+var io = require('socket.io')(server);
+var indexRouter = require('./routes/index');
+
 
 const logLevel = 'DEBUG';
 const logMode = 'ALERT';
 var Logger = require('./public/logger.js');
 var logger = new Logger(logLevel, logMode, 'Serveur');
 
+var app = express();
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.use(express.static('public'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (req, res) => {
-    // Traitement sur l'url, sur les cookies, ... 
-    res.redirect('/draw')
+app.use('/', indexRouter);
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    next(createError(404));
 });
 
-app.get('/draw', (req, res) => {
+// error handler
+app.use(function(err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+  
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+});
 
-    let userId = req.query.username;
-    if (!userId || userId === '') {
-        userId = Math.random().toString(36).substring(7);
-    }
-    console.log('userId : ', userId);
-    res.render('draw', {
-        userId: userId,
-        logLevel: logLevel,
-        logMode: logMode
-    });
-})
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket : ', socket.id);
@@ -65,3 +77,5 @@ io.on('connection', (socket) => {
 server.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
 });
+
+module.exports = app;
