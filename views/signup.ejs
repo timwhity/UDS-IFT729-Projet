@@ -20,11 +20,48 @@
     <input type="password" name="password" id="password">
   </p>
   <p>
+    <label for="confirmPassword">Confirmer le mot de passe :</label>
+    <input type="password" name="confirmPassword" id="confirmPassword">
+  </p>
+  <p>
+    <span id="passwordError" style="color: red;"></span>
+  </p>
+  <p>
     <input type="submit" value="Créer un compte">
     <button type="button" onclick="location.href='/s/login'">Déjà un compte ?</button>
   </p>
 </form>
 
+<script>
+  const passwordInput = document.getElementById('password');
+  const confirmPasswordInput = document.getElementById('confirmPassword');
+  const validationButton = document.querySelector('input[type="submit"]');
+  const passwordError = document.getElementById('passwordError');
+
+  // passwordError.textContent = "Les mots de passe ne correspondent pas";
+  validationButton.disabled = true;
+
+  function validate(passwordInput, confirmPasswordInput) {
+    if (passwordInput.length < 8) {
+      passwordError.textContent = "Le mot de passe doit contenir au moins 8 caractères";
+      validationButton.disabled = true;
+    } else if (passwordInput !== confirmPasswordInput) {
+      passwordError.textContent = "Les mots de passe ne correspondent pas";
+      validationButton.disabled = true;
+    } else {
+      passwordError.textContent = "";
+      validationButton.disabled = false;
+    }
+  }
+
+  passwordInput.addEventListener('input', () => {
+    validate(passwordInput.value, confirmPasswordInput.value);
+  });
+
+  confirmPasswordInput.addEventListener('input', () => {
+    validate(passwordInput.value, confirmPasswordInput.value);
+  });
+</script>
 
 </body>
 </html>

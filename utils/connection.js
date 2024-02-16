@@ -1,5 +1,5 @@
 const mysql = require('mysql');
-const dotenv = require('dotenv');
+require('dotenv').config();
 
 
 function connection() {
@@ -27,4 +27,4 @@ function dataRequest(query, params, callback) {
   });
 }
 
-module.exports = dataRequest
+module.exports = dataRequest;

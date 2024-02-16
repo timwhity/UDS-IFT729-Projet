@@ -6,7 +6,7 @@ var session = require('express-session');
 
 var drawRouter = require('./draw');
 var homeRouter = require('./home');
-var { getUser, addUser } = require('../utils/requests');
+var dataRequest = require('../utils/connection');
 
 router.use(express.urlencoded({ extended: false }))
 router.use(session({
@@ -29,8 +29,10 @@ router.use(function(req, res, next){
 
 // Authenticate using our plain-object database of doom!
 function authenticate(name, pass, fn) {
-	getUser(name, (err, user) => {
+	dataRequest('SELECT * FROM users WHERE username = ?', [name], function(err, user) {
 		if (err) return fn(err)
+		if (!user) return fn(null, null)
+		user = user[0];
 		if (!user) return fn(null, null)
 
 		console.log('user : ', user);
@@ -58,7 +60,7 @@ router.use('/draw', restrict, drawRouter);
 
 router.get('/', function(req, res){
 	if (req.session.user) {
-		res.redirect('/s/home')			// ?????????????
+		res.redirect('/s/home')
 	} else {
 		res.redirect('/s/login');
 	}
@@ -69,7 +71,7 @@ router.get('/login', function(req, res){
 });
 router.get('/logout', function(req, res){
 	req.session.destroy(function(){
-		res.redirect('/sec/login');
+		res.redirect('/s/login');
 	});
 });
 router.get('/signup', function(req, res){
@@ -88,29 +90,39 @@ router.post('/login', function (req, res, next) {
 				// or in this case the entire user object
 				req.session.user = user;
 				req.session.success = 'Auhentifié en tant que ' + user.name
-					+ ' Cliquer <a href="/sec/logout">ici</a> pour vous déconnecter. '
-					+ ' Vous pouvez maintenant accéder aux <a href="/sec/view">données</a>.';
-				res.redirect('/sec/view');
+					+ ' Cliquer <a href="/s/logout">ici</a> pour vous déconnecter. '
+					+ ' Vous pouvez maintenant accéder aux <a href="/s/home">données</a>.';
+				res.redirect('/s/home');
 			});
 		} else {
-			req.session.error = 'Authentication failed, please check your '
-				+ ' username and password.';
-			res.redirect('/sec/login');
+			req.session.error = 'Nom d\'utilisateur ou mot de passe invalide.';
+			res.redirect('/s/login');
 		}
 	});
 });
 
 router.post('/signup', function(req, res){
+	const username = req.body.username;
+
+	if (!username || username === '' || username.length < 3) {
+		req.session.error = 'Veuillez saisir un nom d\'utilisateur valide.';
+		res.redirect('/s/signup');
+		return;
+	}
+	if (!req.body.password || req.body.password === '' || req.body.password.length < 8) {
+		req.session.error = 'Veuillez saisir un mot de passe valide.';
+		res.redirect('/s/signup');
+		return;
+	}
+
+
 	hash({ password: req.body.password }, function (err, pass, salt, hash) {
 		if (err) throw err;
-		addUser(req.body.username, pass, salt, hash, (err, user) => {
-			if (err) {
-				req.session.error = 'Erreur lors de la création du compte';
-				res.redirect('/sec/signup');
-			} else {
-				req.session.success = 'Compte créé avec succès';
-				res.redirect('/sec/login');
-			}
+		// store the salt & hash in the "db"
+		dataRequest('INSERT INTO users (username, salt, hash) VALUES (?, ?, ?)', [username, salt, hash], (err, user) => {
+			if (err) throw err;
+			req.session.success = 'Utilisateur créé avec succès !';
+			res.redirect('/s/login');
 		});
 	});
 });
