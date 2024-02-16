@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tableau blanc</title>
+	<script src="/socket.io/socket.io.js"></script>
+    <script src="logger.js"></script>
+
+    <style>
+        .title {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+			background-color: aquamarine;
+			padding: 10px;
+			border-radius: 20px;
+			border: 2px solid rgb(102, 94, 94);
+        }
+        .info {
+            position: fixed;
+            top: 6%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+			padding: 10px; 
+        }
+        .menu {
+            position: fixed;
+            top: 30%;
+            z-index: 1;
+			padding: 10px;
+        }
+        .formLabel{
+            position: fixed;
+            left: 40%;
+        }
+        .formInput{
+            position: fixed;
+            left: 52%;
+        }
+
+    </style>
+
+</head>
+<body>
+	<h1 class="title">Tableau blanc</h1>
+    <h2 class="info">Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim nemo est nisi quibusdam cum. Placeat rerum optio quis sunt minus consectetur obcaecati voluptatem nihil mollitia deleniti libero, ut nisi tempora.</h2>
+	<div class="menu">
+		<form class="connectForm">
+            <label class="formLabel" for="uname">Entré le nom désiré</label>
+            <input class="formInput" for="userName" type="text" name="uname"><br>
+            <br>
+            <label class="formLabel" for="roomid">Code de tableau a rejoindre</label>
+            <input class="formInput" id="room" type="text" name="roomid" onkeyup="success()"><br>
+            <br>
+            <button type="button" id="btn_create" style="position: fixed; left:45%">Créer salle</button>
+            <button type="button" id="btn_join" style=" position: fixed; left:50%" disabled>Rejoindre salle</button>
+        </form>
+
+	</div>
+	
+</body>

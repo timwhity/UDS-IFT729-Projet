@@ -12,10 +12,12 @@ var logger = new Logger(logLevel, logMode, 'Serveur');
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
+/*
 app.get('/', (req, res) => {
     // Traitement sur l'url, sur les cookies, ... 
     res.redirect('/draw')
 });
+*/
 
 app.get('/draw', (req, res) => {
 
@@ -30,6 +32,13 @@ app.get('/draw', (req, res) => {
         logMode: logMode
     });
 })
+
+app.get('/', (req, res) => {
+    // Traitement sur l'url, sur les cookies, ... 
+    res.render('\index')
+});
+
+
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket : ', socket.id);
@@ -63,3 +72,11 @@ io.on('connection', (socket) => {
 server.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
 });
+
+function success() {
+    if(document.getElementById("room").value==="") { 
+           document.getElementById('btn_join').disabled = true; 
+       } else { 
+           document.getElementById('btn_join').disabled = false;
+       }
+   }
