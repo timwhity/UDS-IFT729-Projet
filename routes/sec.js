@@ -31,11 +31,8 @@ router.use(function(req, res, next){
 function authenticate(name, pass, fn) {
 	dataRequest('SELECT * FROM users WHERE username = ?', [name], function(err, user) {
 		if (err) return fn(err)
-		if (!user) return fn(null, null)
+		if (!user || user.length < 0) return fn(null, null)
 		user = user[0];
-		if (!user) return fn(null, null)
-
-		console.log('user : ', user);
 
 		// apply the same algorithm to the POSTed password, applying the hash against the pass / salt, if there is a match we found the user
 		hash({ password: pass, salt: user.salt }, function (err, pass, salt, hash) {
@@ -82,12 +79,8 @@ router.post('/login', function (req, res, next) {
 	authenticate(req.body.username, req.body.password, function(err, user){
 		if (err) return next(err)
 		if (user) {
-			// Regenerate session when signing in
-			// to prevent fixation
+			// Regenerate session when signing in to prevent fixation
 			req.session.regenerate(function(){
-				// Store the user's primary key
-				// in the session store to be retrieved,
-				// or in this case the entire user object
 				req.session.user = user;
 				req.session.success = 'Auhentifié en tant que ' + user.name
 					+ ' Cliquer <a href="/s/logout">ici</a> pour vous déconnecter. '

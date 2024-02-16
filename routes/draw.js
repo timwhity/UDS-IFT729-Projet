@@ -5,13 +5,17 @@ const logLevel = 'DEBUG';
 const logMode = 'ALERT';
 
 router.get('/', (req, res, next) => {
-	let userId = req.query.username;
-    if (!userId || userId === '') {
-        userId = Math.random().toString(36).substring(7);
+
+    // Récupérer l'identifiant de l'utilisateur
+    let user = req.session.user;
+    if (!user) {
+        res.redirect('/s/login');
+        return;
     }
-    console.log('userId : ', userId);
+
+    console.log('user : ', user);
     res.render('draw', {
-        userId: userId,
+        userId: user,
         logLevel: logLevel,
         logMode: logMode
     });
