@@ -1,6 +1,9 @@
 var express = require('express');
 var router = express.Router();
 
+var hash = require('pbkdf2-password')()
+var session = require('express-session');
+
 var drawRouter = require('./draw');
 var homeRouter = require('./home');
 

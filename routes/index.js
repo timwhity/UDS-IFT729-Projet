@@ -4,10 +4,10 @@ var router = express.Router();
 var secRouter = require('./sec');
 
 
-router.use('/sec', secRouter);
+router.use('/s', secRouter);
 
 router.get('/', (req, res, next) => {
-  res.render('home');
+  res.render('index');
 });
 
 router.get('/favicon.ico', (req, res, next) => {

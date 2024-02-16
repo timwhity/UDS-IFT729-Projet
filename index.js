@@ -1,14 +1,14 @@
-
-const server = require('http').Server(app)
-const port = 3000;
-
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
-var logger = require('morgan');
 var io = require('socket.io')(server);
+var app = express();
+var server = require('http').Server(app)
+
 var indexRouter = require('./routes/index');
+
+const port = 3000;
 
 
 const logLevel = 'DEBUG';
@@ -16,7 +16,6 @@ const logMode = 'ALERT';
 var Logger = require('./public/logger.js');
 var logger = new Logger(logLevel, logMode, 'Serveur');
 
-var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.json());
