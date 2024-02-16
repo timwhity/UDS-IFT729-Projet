@@ -10,12 +10,6 @@ var indexRouter = require('./routes/index');
 
 const port = 3000;
 
-
-const logLevel = 'DEBUG';
-const logMode = 'ALERT';
-var Logger = require('./public/logger.js');
-var logger = new Logger(logLevel, logMode, 'Serveur');
-
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.json());
@@ -47,23 +41,18 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('user connected', socket.id);
 
     socket.on('object modified', (object) => {
-        logger.debug('object modified');
         socket.broadcast.emit('object modified', object);
     });
     socket.on('object added', (object) => {
-        logger.debug('object added');
         socket.broadcast.emit('object added', object);
     });
     socket.on('object removed', (object) => {
-        logger.debug('object removed');
         socket.broadcast.emit('object removed', object);
     });
     socket.on('objects selected', (objectIds) => {
-        logger.debug('objects selected');
         socket.broadcast.emit('objects selected', { userId: socket.id, objectIds: objectIds });
     });
     socket.on('objects deselected', () => {
-        logger.debug('objects deselected');
         socket.broadcast.emit('objects deselected', socket.id);
     });
     socket.on('disconnect', () => {
@@ -74,7 +63,7 @@ io.on('connection', (socket) => {
 });
 
 server.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`App listening at http://localhost:${port}`);
 });
 
 module.exports = app;

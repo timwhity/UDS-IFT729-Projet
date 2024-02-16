@@ -6,6 +6,7 @@ var session = require('express-session');
 
 var drawRouter = require('./draw');
 var homeRouter = require('./home');
+var { getUser, addUser } = require('../utils/requests');
 
 router.use(express.urlencoded({ extended: false }))
 router.use(session({
@@ -28,14 +29,18 @@ router.use(function(req, res, next){
 
 // Authenticate using our plain-object database of doom!
 function authenticate(name, pass, fn) {
-	if (name != user.name) return fn(null, null)
-	// apply the same algorithm to the POSTed password, applying
-	// the hash against the pass / salt, if there is a match we
-	// found the user
-	hash({ password: pass, salt: user.salt }, function (err, pass, salt, hash) {
-		if (err) return fn(err);
-		if (hash === user.hash) return fn(null, user)
-		fn(null, null)
+	getUser(name, (err, user) => {
+		if (err) return fn(err)
+		if (!user) return fn(null, null)
+
+		console.log('user : ', user);
+
+		// apply the same algorithm to the POSTed password, applying the hash against the pass / salt, if there is a match we found the user
+		hash({ password: pass, salt: user.salt }, function (err, pass, salt, hash) {
+			if (err) return fn(err);
+			if (hash === user.hash) return fn(null, user)
+			fn(null, null)
+		});
 	});
 }
 
@@ -67,6 +72,9 @@ router.get('/logout', function(req, res){
 		res.redirect('/sec/login');
 	});
 });
+router.get('/signup', function(req, res){
+	res.render('signup');
+});
 
 router.post('/login', function (req, res, next) {
 	authenticate(req.body.username, req.body.password, function(err, user){
@@ -91,5 +99,21 @@ router.post('/login', function (req, res, next) {
 		}
 	});
 });
+
+router.post('/signup', function(req, res){
+	hash({ password: req.body.password }, function (err, pass, salt, hash) {
+		if (err) throw err;
+		addUser(req.body.username, pass, salt, hash, (err, user) => {
+			if (err) {
+				req.session.error = 'Erreur lors de la création du compte';
+				res.redirect('/sec/signup');
+			} else {
+				req.session.success = 'Compte créé avec succès';
+				res.redirect('/sec/login');
+			}
+		});
+	});
+});
+
 
 module.exports = router;

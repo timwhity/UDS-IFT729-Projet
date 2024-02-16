@@ -109,18 +109,21 @@ a {
 	width: 100%;
 	margin-bottom: 20px;
 }
-  
+
+.form_login button,
 .form_login input[type="submit"] {
 	background-color: #5742ce;
 	color: #fff;
 	border: none;
 	border-radius: 5px;
 	padding: 10px 20px;
+	margin-right: 10px;
 	font-size: 18px;
 	cursor: pointer;
 	transition: all 0.2s ease-in-out;
 }
-  
+
+.form_login button:hover,
 .form_login input[type="submit"]:hover {
 	background-color: #4638a3;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);

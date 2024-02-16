@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Se connecter</title>
+  <title>Créer un compte</title>
   <link rel="stylesheet" href="/stylesheets/style.css">
 </head>
 <body>
 
-<h1 class="title">Se connecter</h1>
+<h1 class="title">Créer un compte</h1>
 <%- message %>
-<form class="form_login" method="post" action="/s/login">
+<form class="form_login" method="post" action="/s/signup">
   <p>
     <label for="username">Username :</label>
     <input type="text" name="username" id="username">
@@ -20,8 +20,8 @@
     <input type="password" name="password" id="password">
   </p>
   <p>
-    <input type="submit" value="Se connecter">
-    <button type="button" onclick="location.href='/s/signup'">Pas de compte ?</button>
+    <input type="submit" value="Créer un compte">
+    <button type="button" onclick="location.href='/s/login'">Déjà un compte ?</button>
   </p>
 </form>
 
