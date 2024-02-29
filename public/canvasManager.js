@@ -1,13 +1,17 @@
-const COLORS = ['rgba(255,0,0,0.5)', 'rgba(0,255,0,0.5)', 'rgba(0,0,255,0.5)', 'rgba(255,255,0,0.5)', 'rgba(0,255,255,0.5)', 'rgba(255,0,255,0.5)', 
-    'rgba(255,255,255,0.5)', 'rgba(200, 0, 0, 0.5)', 'rgba(0, 200, 0, 0.5)', 'rgba(0, 0, 200, 0.5)', 'rgba(200, 200, 0, 0.5)', 'rgba(0, 200, 200, 0.5)', 
-    'rgba(200, 0, 200, 0.5)', 'rgba(200, 200, 200, 0.5)', 'rgba(150, 0, 0, 0.5)', 'rgba(0, 150, 0, 0.5)', 'rgba(0, 0, 150, 0.5)', 'rgba(150, 150, 0, 0.5)',
-    'rgba(0, 150, 150, 0.5)', 'rgba(150, 0, 150, 0.5)', 'rgba(150, 150, 150, 0.5)'];
+const COLORS = ['rgba(200,0,0,1)', 'rgba(0,200,0,1)', 'rgba(0,0,200,1)', 'rgba(200,200,0,1)', 'rgba(0,200,200,1)', 'rgba(200,0,200,1)', 
+    'rgba(100,100,100,1)', 'rgba(150, 0, 0,1)', 'rgba(0, 150, 0,1)', 'rgba(0, 0, 150,1)', 'rgba(150, 150, 0,1)', 'rgba(0, 150, 150,1)', 
+    'rgba(150, 0, 150,1)', 'rgba(100, 100, 100,1)', 'rgba(100, 0, 0,1)', 'rgba(0, 100, 0,1)', 'rgba(0, 0, 100,1)', 'rgba(100, 100, 0,1)',
+    'rgba(0, 100, 100,1)', 'rgba(100, 0, 100,1)', 'rgba(50, 50, 50,1)'];
 
 class CanvasManager {
-    constructor(canvas, socket, logger) {
+    constructor(canvas, socket, logger, userId) {
         this.canvas = canvas;
         this.socket = socket;
         this.logger = logger;
+        this.mode = 'uninitialized'
+
+        this.userId = userId;
+        this.id_obj = 0;    // Utilisé pour créer les id des objets
 
         this.addedObjectIds = new Set();             // Liste des objets ajoutés par d'autres utilisateurs, pour éviter de renvoyer leur création
         this.removedObjectIds = new Set();           // Liste des objets supprimés par d'autres utilisateurs, pour éviter de renvoyer leur suppression
@@ -16,6 +20,7 @@ class CanvasManager {
         this.othersColors = new Map();               // Liste des couleurs des autres utilisateurs
         
         // Server -> Client
+        this.socket.on('error', this.handleError.bind(this));
         this.socket.on('object modified', this.handleObjectModified.bind(this));
         this.socket.on('object added', this.handleObjectAdded.bind(this));
         this.socket.on('object removed', this.handleObjectRemoved.bind(this));
@@ -23,7 +28,6 @@ class CanvasManager {
         this.socket.on('objects deselected', this.handleObjectsDeselected.bind(this));
         this.socket.on('user connected', this.handleUserConnected.bind(this));
         this.socket.on('user disconnected', this.handleUserDisconnected.bind(this));
-
         // Client -> Server
         this.canvas.on('object:modified', this.emitObjectModified.bind(this));
         this.canvas.on('object:added', this.emitObjectAdded.bind(this));
@@ -32,62 +36,50 @@ class CanvasManager {
         this.canvas.on('selection:cleared', this.emitObjectsDeselected.bind(this));
 
         // Rerender
-        this.canvas.contextContainer.strokeStyle = '#555';
         this.canvas.on('before:render', function() {
             this.updateSelectionRender();
         }.bind(this));
-        // this.canvas.on('after:render', function() {
-        //     this.updateSelectionRenderbis();
-        // }.bind(this));
+
+        // Initialisation
+        this.askConnection();
+        this.socket.on('connection-ok', this.connectionOk.bind(this));
     }
 
-    //============================= CLIENT -> SERVER =============================
-    emitObjectModified(e) {     // Objet modifié par le client
-        if (e.target.id.startsWith('selection')) {     // Si l'objet modifié est une sélection, on ne la renvoie pas
-            return;
+    //============================== INITIALIZATION ==============================
+    askConnection() {
+        this.logger.debug('Asking for connection');
+        if (!this.userId) {
+            this.userId = prompt('Enter your username');
+            if (!this.userId) {
+                this.userId = Math.random().toString(36).substring(7);
+            }
         }
-        if (!this.modificationAuthorizedObjectIds.has(e.target.id)) {
-            this.logger.warn('Modification unauthorized');
-            return;
-        }
-        this.logger.debug('emitObjectModified : ' + e.target.id);
-        this.socket.emit('object modified', e.target.toObject(['id']));
+        let psw = prompt('Enter the password');
+        this.logger.debug('User ' + this.userId + ' asked for connection');
+        this.socket.emit('connection-asked', this.userId, psw);
     }
-    emitObjectAdded(e) {        // Objet ajouté par le client
-        if (e.target.id.startsWith('selection')) {     // Si l'objet ajouté est une sélection, on ne la renvoie pas
-            return;
+    connectionOk(obj) {
+        this.logger.debug('ConnectionOk');
+        this.mode = obj.state;
+        if (this.mode !== 'writer') {
+            alert('You are in read-only mode');
         }
-        if (this.addedObjectIds.has(e.target.id)) {     // Si la création de l'objet a été envoyée par le serveur, on ne la renvoie pas
-            this.addedObjectIds.delete(e.target.id);
-            return;
-        }
-        this.logger.debug('emitObjectAdded : ' + e.target.id);
-        this.socket.emit('object added', e.target.toObject(['id']));
+        // Récupérérer les objets
+        // TODO
+
+        // Initialiser les autres utilisateurs
+        obj.users.forEach(userId => {
+            this.othersColors.set(userId, COLORS[Math.floor(Math.random() * COLORS.length)]);
+        });
     }
-    emitObjectRemoved(e) {      // Objet supprimé par le client
-        if (e.target.id.startsWith('selection')) {     // Si l'objet supprimé est une sélection, on ne la renvoie pas
-            return;
-        }
-        if (this.removedObjectIds.has(e.target.id)) {   // Si la suppression de l'objet a été envoyée par le serveur, on ne la renvoie pas
-            this.removedObjectIds.delete(e.target.id);
-            return;
-        }
-        this.logger.debug('emitObjectRemoved : ' + e.target.id);
-        this.socket.emit('object removed', e.target.toObject(['id']));
-    }
-    emitObjectsSelected(e) {    // Objets sélectionnés par le client
-        // TODO : check permission
-        this.logger.debug('emitObjectsSelected : ' + this.canvas.getActiveObjects().map(obj => obj.id).join(', '));
-        this.socket.emit('objects selected', this.canvas.getActiveObjects().map(obj => obj.id));
-        this.modificationAuthorizedObjectIds = new Set(this.canvas.getActiveObjects().map(obj => obj.id));
-    }
-    emitObjectsDeselected(e) {  // Objets désélectionnés par le client
-        this.logger.debug('emitObjectsDeselected');
-        this.socket.emit('objects deselected');
-        this.modificationAuthorizedObjectIds = new Set();
-    }
+
 
     //============================= SERVER -> CLIENT =============================
+    handleError(message) {
+        this.logger.error("Error send by server : " + message);
+        alert(message);
+    }
+
     handleObjectModified(object) {      // Objet modifié par un autre utilisateur
         let canvasObject = this.getObjectById(object.id);
         if (canvasObject) {
@@ -123,10 +115,12 @@ class CanvasManager {
         var userId = event.userId;                                                     // Id de l'utilisateur sélectionnant les objets
         let oldSelectionByUser = this.selectedByOthersObjectIds.get(userId) || [];     // Ancienne sélection de l'utilisateur
         let newSelectionByUser = event.objectIds;                                      // Nouvelle sélection de l'utilisateur
+        this.logger.debug('User ' + userId + ' selected objects : ' + newSelectionByUser.join(', '));
         this.handleSelectionModification(oldSelectionByUser, newSelectionByUser, userId);
     }
     handleObjectsDeselected(userId) {   // Objets désélectionnés par un autre utilisateur
         let oldSelectionByUser = this.selectedByOthersObjectIds.get(userId) || [];
+        this.logger.debug('User ' + userId + ' deselected objects : ' + oldSelectionByUser.join(', '));
         this.handleSelectionModification(oldSelectionByUser, [], userId);
     }
     handleSelectionModification(oldSelection, newSelection, userId) {
@@ -141,9 +135,12 @@ class CanvasManager {
                     this.logger.warn('DESYNC : handleSelectionModification : Object not found in canvas');
                     return;
                 }
-                this.logger.debug('Object ' + canvasObject.id + ' is now selectable');
-                canvasObject.set('selectable', true);
-                canvasObject.set('evented', true);
+                if (this.mode === 'writer')
+                {
+                    this.logger.debug('Object ' + canvasObject.id + ' is now selectable');
+                    canvasObject.set('selectable', true);
+                    canvasObject.set('evented', true);
+                }
                 if (!selectionRec) {
                     this.logger.warn('DESYNC : handleSelectionModification : Selection not found in canvas');
                     return;
@@ -173,6 +170,11 @@ class CanvasManager {
 
                 canvasObject.setCoords();
                 let bound = canvasObject.getBoundingRect();
+                let color = this.othersColors.get(userId);
+                if (!color) {
+                    this.logger.warn('DESYNC : handleSelectionModification : Color not found');
+                    return;
+                }
 
                 this.logger.debug('Creating selection for object ' + canvasObject.id);
                 let selection = new fabric.Rect({
@@ -182,7 +184,7 @@ class CanvasManager {
                     width: bound.width + 4,
                     height: bound.height + 4,
                     fill: 'rgba(0,0,0,0)',
-                    stroke: this.othersColors.get(userId),
+                    stroke: color,
                     selectable: false,
                     evented: false
                 });
@@ -193,7 +195,7 @@ class CanvasManager {
                     left: bound.left + 0.5,
                     top: bound.top - 20,
                     fontSize: 12,
-                    fill: this.othersColors.get(userId),
+                    fill: color,
                     selectable: false,
                     evented: false
                 });
@@ -207,43 +209,101 @@ class CanvasManager {
         
     }
     handleUserConnected(userId) {       // Un autre utilisateur s'est connecté
+        this.logger.debug('User connected : ' + userId);
         let color = COLORS[Math.floor(Math.random() * COLORS.length)];
         this.othersColors.set(userId, color);
     }
     handleUserDisconnected(userId) {    // Un autre utilisateur s'est déconnecté
+        this.logger.debug('User disconnected : ' + userId);
         this.othersColors.delete(userId);
         this.selectedByOthersObjectIds.delete(userId);
     }
 
+    //================================= BUTTONS ==================================
+
+    createRec() {
+        if (!this.checkEditionRight()) return;
+        var rec = new fabric.Rect({
+			left: 100,
+			top: 100,
+			fill: 'red',
+			width: 20,
+			height: 20,
+			id: this.genId()
+		});
+		canvas.add(rec);
+		canvas.setActiveObject(rec);
+    }
+
+    del() {
+        if (!this.checkEditionRight()) return;
+        this.canvas.remove(this.canvas.getActiveObject());
+    }
+
+    //============================= CLIENT -> SERVER =============================
+    emitObjectModified(e) {     // Objet modifié par le client
+        if (e.target.id.startsWith('selection')) return;     // Si l'objet modifié est une sélection, on ne la renvoie pas
+        if (!this.checkRights()) return;
+        if (!this.modificationAuthorizedObjectIds.has(e.target.id)) {
+            this.logger.warn('Modification unauthorized');
+            return;
+        }
+        this.logger.debug('emitObjectModified : ' + e.target.id);
+        this.socket.emit('object modified', e.target.toObject(['id']));
+    }
+    emitObjectAdded(e) {        // Objet ajouté par le client
+        if (e.target.id.startsWith('selection')) return;     // Si l'objet modifié est une sélection, on ne la renvoie pas
+        if (this.addedObjectIds.has(e.target.id)) {     // Si la création de l'objet a été envoyée par le serveur, on ne la renvoie pas
+            this.addedObjectIds.delete(e.target.id);
+            return;
+        }
+        if (!this.checkRights()) return;
+        this.logger.debug('emitObjectAdded : ' + e.target.id);
+        this.socket.emit('object added', e.target.toObject(['id']));
+    }
+    emitObjectRemoved(e) {      // Objet supprimé par le client
+        if (e.target.id.startsWith('selection')) return;     // Si l'objet modifié est une sélection, on ne la renvoie pas
+        if (this.removedObjectIds.has(e.target.id)) {   // Si la suppression de l'objet a été envoyée par le serveur, on ne la renvoie pas
+            this.removedObjectIds.delete(e.target.id);
+            return;
+        }
+        if (!this.checkRights()) return;
+        this.logger.debug('emitObjectRemoved : ' + e.target.id);
+        this.socket.emit('object removed', e.target.toObject(['id']));
+    }
+    emitObjectsSelected(e) {    // Objets sélectionnés par le client
+        if (!this.checkRights()) return;
+        this.logger.debug('emitObjectsSelected : ' + this.canvas.getActiveObjects().map(obj => obj.id).join(', '));
+        this.socket.emit('objects selected', this.canvas.getActiveObjects().map(obj => obj.id));
+        this.modificationAuthorizedObjectIds = new Set(this.canvas.getActiveObjects().map(obj => obj.id));
+    }
+    emitObjectsDeselected(e) {  // Objets désélectionnés par le client
+        if (!this.checkRights()) return;
+        this.logger.debug('emitObjectsDeselected');
+        this.socket.emit('objects deselected');
+        this.modificationAuthorizedObjectIds = new Set();
+    }
+
+
     //============================= OTHERS =============================
+
+    checkRights() {
+        if (this.mode === 'writer') return true;
+        this.logger.warn('Modification should be unauthorized');
+        return false;
+    }
+
+    checkEditionRight() {
+        return this.mode === 'writer';
+    }
+
     getObjectById(id) {
         return this.canvas.getObjects().find(obj => obj.id === id);
     }
 
-    // updateSelectionRenderbis() {
-    //     this.logger.debug('updateSelectionRenderBis');
-    //     this.canvas.contextContainer.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    //     this.canvas.getObjects().forEach(obj => {
-    //         this.selectedByOthersObjectIds.forEach((objectIds, userId) => {
-    //             if (objectIds.includes(obj.id)) {
-    //                 this.logger.debug('Rendering selection for object ' + obj.id);
-    //                 obj.setCoords();
-    //                 var bound = obj.getBoundingRect();
-    //                 this.canvas.contextContainer.strokeStyle = this.othersColors.get(userId);
-    //                 this.canvas.contextContainer.fillStyle = this.othersColors.get(userId);
-    //                 this.canvas.contextContainer.strokeRect(
-    //                     bound.left + 0.5,
-    //                     bound.top + 0.5,
-    //                     bound.width,
-    //                     bound.height
-    //                 );
-    //                 this.canvas.contextContainer.fillText(userId, bound.left + 0.5, bound.top - 5);
-    //             }
-    //         });
-    //     });
-
-    // }
+	genId() {
+		return this.userId + '-' + this.id_obj++ + '-' + Math.floor(Math.random() * 1000);
+	}
 
     updateSelectionRender() {
         this.logger.debug('updateSelectionRender');
