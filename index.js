@@ -61,6 +61,10 @@ app.get('/draw', (req, res) => {
     }
 })
 
+app.get('/', (req, res) => {
+    // Traitement sur l'url, sur les cookies, ... 
+    res.render('\index')
+});
 
 server.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`);
