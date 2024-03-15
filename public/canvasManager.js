@@ -261,6 +261,26 @@ class CanvasManager {
         canvas.setActiveObject(triangle);
     }
 
+    addImage() {
+
+    }
+
+    addText() {
+
+    }
+
+    addLine() {
+
+    }
+
+    addPencil() {
+
+    }
+
+    addEraser() {
+
+    }
+
     del() {
         if (!this.checkEditionRight()) return;
         this.canvas.remove(this.canvas.getActiveObject());

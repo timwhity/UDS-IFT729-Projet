@@ -9,10 +9,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+    <script src="canvasManager.js"></script>
+    <script src="logger.js"></script>
 
     <title>Drawing page</title>
 
     <style>
+        #canvas,
+        canvas {
+            z-index: 52000;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -274,15 +283,15 @@
 
                 <img src="/drawing_icons/mouse_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div>
+            <div id="addRect">
 
                 <img src="/drawing_icons/rectangle_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div>
+            <div id="addCircle">
 
                 <img src="/drawing_icons/circle_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div>
+            <div id="addTriangle">
 
                 <img src="/drawing_icons/triangle_icon.svg" alt="" class="drawing--icon">
             </div>
@@ -310,7 +319,7 @@
                 <img src="/drawing_icons/image_icon.svg" alt="" class="drawing--icon">
 
             </div>
-            <div class="active">
+            <div id="del" class="active">
 
                 <img src="/drawing_icons/erase_icon.svg" alt="" class="drawing--icon">
             </div>
@@ -324,30 +333,9 @@
             <p>Vous pouvez faire des dessins magnifique ici 🎊</p>
         </div>
 
-        <aside id="sidebar">
-            <section id="widget_1"></section>
-            <section id="widget_2"></section>
-            <section id="widget_3"></section>
-        </aside>
 
-        <div class="collaborate">
-            <p>Nom</p>
-            <input type="text" placeholder="Entrez le nom de la page">
-
-            <div class="link-container">
-                <p>Lien</p>
-                <div>
-                    <div>
-                        https://ondessine.com/room/13
-                    </div>
-                    <button>
-                     <img src="/icons/copy_icon.svg" alt="">
-                    <p>Copier Lien</p>
-                </button>
-                </div>
-            </div>
-        </div>
     </main>
+    <canvas id="canvas"></canvas>
 </body>
 <script>
     console.log('Hellow')
@@ -383,6 +371,39 @@
             icon.classList.contains('active') ? icon.classList.remove('active') : null
         }
     }
+
+
+    const logLevel = 'DEBUG';
+    const logMode = 'ALERT';
+    const canvas = new fabric.Canvas('canvas', {
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+
+    var socket = io();
+    var logger = new Logger(logLevel, logMode);
+    var canvasManager = new CanvasManager(canvas, socket, logger, '<%= userId %>');
+
+    // Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
+    document.getElementById('addRect').addEventListener('click', function() {
+        console.log('creating rectangle')
+        canvasManager.createRec();
+    });
+
+    document.getElementById('addCircle').addEventListener('click', function() {
+        console.log('creating rectangle')
+        canvasManager.createCicle();
+    });
+
+    document.getElementById('addTriangle').addEventListener('click', function() {
+        console.log('creating rectangle')
+        canvasManager.createTriangle();
+    });
+
+    // Fait en sorte que le bouton "delRect" supprime le rectangle sélectionné
+    document.getElementById('del').addEventListener('click', function() {
+        canvasManager.del();
+    });
 </script>
 
 </html>

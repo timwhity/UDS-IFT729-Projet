@@ -1,5 +1,7 @@
-- Side bar ()
-- Finish popup box
+- Side bar () // Non
 - Understand functionality
 - Implement functionality
-- Chat functionality
+- Chat functionality ( Nom, date le message postee, et le message).
+
+- On peut changer le background et stroke d'un shape
+- On peut changer le bold et italics property d'un texte
