@@ -64,8 +64,17 @@ class CanvasManager {
         if (this.mode !== 'writer') {
             alert('You are in read-only mode');
         }
+        
         // Récupérérer les objets
-        // TODO
+        this.logger.debug(obj.objects);
+        obj.objects.forEach(object => {
+            this.addedObjectIds.add(object.id);
+            fabric.util.enlivenObjects([object], function(enlivenedObjects) {
+                this.logger.debug('handleObjectAdded : ' + enlivenedObjects[0].id);
+                this.canvas.add(enlivenedObjects[0]);
+                this.canvas.renderAll();
+            })
+        })
 
         // Initialiser les autres utilisateurs
         obj.users.forEach(userId => {

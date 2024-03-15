@@ -34,6 +34,7 @@ class serverCanvasManager {
 				this.socketId2Id.set(socket.id, userId);
 
 				this.logger.debug('User ' + userId + ' initialized with state ' + state);
+				this.logger.debug('User ' + userId + ' initialized with objects ' + this.objects);
 				socket.emit('connection-ok', { state: state, objects: this.objects, users: Array.from(this.connectedUsers.keys()) });
 				socket.broadcast.emit('user connected', userId);
 			});
@@ -46,11 +47,13 @@ class serverCanvasManager {
 			socket.on('object added', (object) => {
 				if (!this.checkRights(socket)) return;
 				this.logger.debug('object added');
+				this.objects.push(object);
 				socket.broadcast.emit('object added', object);
 			});
 			socket.on('object removed', (object) => {
 				if (!this.checkRights(socket)) return;
 				this.logger.debug('object removed');
+				this.objects.at(this.objects.findIndex(obj=> (obj.id==object.id))).delete;
 				socket.broadcast.emit('object removed', object);
 			});
 			socket.on('objects selected', (objectIds) => {
