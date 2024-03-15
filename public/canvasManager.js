@@ -1,7 +1,8 @@
-const COLORS = ['rgba(200,0,0,1)', 'rgba(0,200,0,1)', 'rgba(0,0,200,1)', 'rgba(200,200,0,1)', 'rgba(0,200,200,1)', 'rgba(200,0,200,1)', 
-    'rgba(100,100,100,1)', 'rgba(150, 0, 0,1)', 'rgba(0, 150, 0,1)', 'rgba(0, 0, 150,1)', 'rgba(150, 150, 0,1)', 'rgba(0, 150, 150,1)', 
+const COLORS = ['rgba(200,0,0,1)', 'rgba(0,200,0,1)', 'rgba(0,0,200,1)', 'rgba(200,200,0,1)', 'rgba(0,200,200,1)', 'rgba(200,0,200,1)',
+    'rgba(100,100,100,1)', 'rgba(150, 0, 0,1)', 'rgba(0, 150, 0,1)', 'rgba(0, 0, 150,1)', 'rgba(150, 150, 0,1)', 'rgba(0, 150, 150,1)',
     'rgba(150, 0, 150,1)', 'rgba(100, 100, 100,1)', 'rgba(100, 0, 0,1)', 'rgba(0, 100, 0,1)', 'rgba(0, 0, 100,1)', 'rgba(100, 100, 0,1)',
-    'rgba(0, 100, 100,1)', 'rgba(100, 0, 100,1)', 'rgba(50, 50, 50,1)'];
+    'rgba(0, 100, 100,1)', 'rgba(100, 0, 100,1)', 'rgba(50, 50, 50,1)'
+];
 
 class CanvasManager {
     constructor(canvas, socket, logger, userId) {
@@ -11,14 +12,14 @@ class CanvasManager {
         this.mode = 'uninitialized'
 
         this.userId = userId;
-        this.id_obj = 0;    // Utilisé pour créer les id des objets
+        this.id_obj = 0; // Utilisé pour créer les id des objets
 
-        this.addedObjectIds = new Set();             // Liste des objets ajoutés par d'autres utilisateurs, pour éviter de renvoyer leur création
-        this.removedObjectIds = new Set();           // Liste des objets supprimés par d'autres utilisateurs, pour éviter de renvoyer leur suppression
-        this.selectedByOthersObjectIds = new Map();         // Liste des objets sélectionnés par d'autres utilisateurs, pour mettre à jour le rendu et interdire leur sélection
-        this.modificationAuthorizedObjectIds = new Set();     // Liste des objets modifiables par l'utilisateur, pour autoriser leur modification
-        this.othersColors = new Map();               // Liste des couleurs des autres utilisateurs
-        
+        this.addedObjectIds = new Set(); // Liste des objets ajoutés par d'autres utilisateurs, pour éviter de renvoyer leur création
+        this.removedObjectIds = new Set(); // Liste des objets supprimés par d'autres utilisateurs, pour éviter de renvoyer leur suppression
+        this.selectedByOthersObjectIds = new Map(); // Liste des objets sélectionnés par d'autres utilisateurs, pour mettre à jour le rendu et interdire leur sélection
+        this.modificationAuthorizedObjectIds = new Set(); // Liste des objets modifiables par l'utilisateur, pour autoriser leur modification
+        this.othersColors = new Map(); // Liste des couleurs des autres utilisateurs
+
         // Server -> Client
         this.socket.on('error', this.handleError.bind(this));
         this.socket.on('object modified', this.handleObjectModified.bind(this));
@@ -80,7 +81,7 @@ class CanvasManager {
         alert(message);
     }
 
-    handleObjectModified(object) {      // Objet modifié par un autre utilisateur
+    handleObjectModified(object) { // Objet modifié par un autre utilisateur
         let canvasObject = this.getObjectById(object.id);
         if (canvasObject) {
             fabric.util.enlivenObjects([object], function(enlivenedObjects) {
@@ -92,7 +93,7 @@ class CanvasManager {
             this.logger.warn('DESYNC : handleObjectModified : Object not found in canvas');
         }
     }
-    handleObjectAdded(object) {         // Objet ajouté par un autre utilisateur
+    handleObjectAdded(object) { // Objet ajouté par un autre utilisateur
         this.addedObjectIds.add(object.id);
         fabric.util.enlivenObjects([object], function(enlivenedObjects) {
             this.logger.debug('handleObjectAdded : ' + enlivenedObjects[0].id);
@@ -100,7 +101,7 @@ class CanvasManager {
             this.canvas.renderAll();
         }.bind(this));
     }
-    handleObjectRemoved(object) {       // Objet supprimé par un autre utilisateur
+    handleObjectRemoved(object) { // Objet supprimé par un autre utilisateur
         this.removedObjectIds.add(object.id);
         let canvasObject = this.getObjectById(object.id);
         if (canvasObject) {
@@ -111,14 +112,14 @@ class CanvasManager {
             this.logger.warn('DESYNC : handleObjectRemoved : Object not found in canvas');
         }
     }
-    handleObjectsSelected(event) {      // Objets sélectionnés par un autre utilisateur
-        var userId = event.userId;                                                     // Id de l'utilisateur sélectionnant les objets
-        let oldSelectionByUser = this.selectedByOthersObjectIds.get(userId) || [];     // Ancienne sélection de l'utilisateur
-        let newSelectionByUser = event.objectIds;                                      // Nouvelle sélection de l'utilisateur
+    handleObjectsSelected(event) { // Objets sélectionnés par un autre utilisateur
+        var userId = event.userId; // Id de l'utilisateur sélectionnant les objets
+        let oldSelectionByUser = this.selectedByOthersObjectIds.get(userId) || []; // Ancienne sélection de l'utilisateur
+        let newSelectionByUser = event.objectIds; // Nouvelle sélection de l'utilisateur
         this.logger.debug('User ' + userId + ' selected objects : ' + newSelectionByUser.join(', '));
         this.handleSelectionModification(oldSelectionByUser, newSelectionByUser, userId);
     }
-    handleObjectsDeselected(userId) {   // Objets désélectionnés par un autre utilisateur
+    handleObjectsDeselected(userId) { // Objets désélectionnés par un autre utilisateur
         let oldSelectionByUser = this.selectedByOthersObjectIds.get(userId) || [];
         this.logger.debug('User ' + userId + ' deselected objects : ' + oldSelectionByUser.join(', '));
         this.handleSelectionModification(oldSelectionByUser, [], userId);
@@ -128,15 +129,14 @@ class CanvasManager {
         // Supprimer les objets désélectionnés
         oldSelection.forEach(objectId => {
             if (!newSelection.includes(objectId)) {
-                let canvasObject = this.getObjectById(objectId);                          // Objet désélectionné
-                let selectionRec = this.getObjectById('selectionRec|' + objectId);        // Sélection de l'objet
-                let selectionLabel = this.getObjectById('selectionLabel|' + objectId);    // Étiquette de l'objet
+                let canvasObject = this.getObjectById(objectId); // Objet désélectionné
+                let selectionRec = this.getObjectById('selectionRec|' + objectId); // Sélection de l'objet
+                let selectionLabel = this.getObjectById('selectionLabel|' + objectId); // Étiquette de l'objet
                 if (!canvasObject) {
                     this.logger.warn('DESYNC : handleSelectionModification : Object not found in canvas');
                     return;
                 }
-                if (this.mode === 'writer')
-                {
+                if (this.mode === 'writer') {
                     this.logger.debug('Object ' + canvasObject.id + ' is now selectable');
                     canvasObject.set('selectable', true);
                     canvasObject.set('evented', true);
@@ -159,7 +159,7 @@ class CanvasManager {
         // Ajouter les objets sélectionnés
         newSelection.forEach(objectId => {
             if (!oldSelection.includes(objectId)) {
-                let canvasObject = this.getObjectById(objectId);                          // Objet sélectionné
+                let canvasObject = this.getObjectById(objectId); // Objet sélectionné
                 if (!canvasObject) {
                     this.logger.warn('DESYNC : handleSelectionModification : Object not found in canvas');
                     return;
@@ -206,14 +206,14 @@ class CanvasManager {
         // Mettre à jour la sélection
         this.selectedByOthersObjectIds.set(userId, newSelection);
         this.canvas.renderAll();
-        
+
     }
-    handleUserConnected(userId) {       // Un autre utilisateur s'est connecté
+    handleUserConnected(userId) { // Un autre utilisateur s'est connecté
         this.logger.debug('User connected : ' + userId);
         let color = COLORS[Math.floor(Math.random() * COLORS.length)];
         this.othersColors.set(userId, color);
     }
-    handleUserDisconnected(userId) {    // Un autre utilisateur s'est déconnecté
+    handleUserDisconnected(userId) { // Un autre utilisateur s'est déconnecté
         this.logger.debug('User disconnected : ' + userId);
         this.othersColors.delete(userId);
         this.selectedByOthersObjectIds.delete(userId);
@@ -221,18 +221,44 @@ class CanvasManager {
 
     //================================= BUTTONS ==================================
 
-    createRec() {
+    createShape(shapeType) {
         if (!this.checkEditionRight()) return;
-        var rec = new fabric.Rect({
-			left: 100,
-			top: 100,
-			fill: 'red',
-			width: 20,
-			height: 20,
-			id: this.genId()
-		});
-		canvas.add(rec);
-		canvas.setActiveObject(rec);
+
+        // Ensure shapeType is a valid shape constructor provided by Fabric.js
+        if (!fabric[shapeType]) {
+            console.error("Invalid shape type:", shapeType);
+            return;
+        }
+
+        // Create the shape dynamically using bracket notation
+        var shape = new fabric[shapeType]({
+            left: 100,
+            top: 100,
+            fill: 'red',
+            width: 20,
+            height: 20,
+            id: this.genId()
+        });
+
+        return shape;
+    }
+
+    createRec() {
+        const rectangle = this.createShape('Rect')
+        canvas.add(rectangle);
+        canvas.setActiveObject(rectangle);
+    }
+
+    createCircle() {
+        const circle = this.createShape('Circle1')
+        canvas.add(circle);
+        canvas.setActiveObject(circle);
+    }
+
+    createTriangle() {
+        const triangle = this.createShape('Triangle')
+        canvas.add(triangle);
+        canvas.setActiveObject(triangle);
     }
 
     del() {
@@ -241,8 +267,8 @@ class CanvasManager {
     }
 
     //============================= CLIENT -> SERVER =============================
-    emitObjectModified(e) {     // Objet modifié par le client
-        if (e.target.id.startsWith('selection')) return;     // Si l'objet modifié est une sélection, on ne la renvoie pas
+    emitObjectModified(e) { // Objet modifié par le client
+        if (e.target.id.startsWith('selection')) return; // Si l'objet modifié est une sélection, on ne la renvoie pas
         if (!this.checkRights()) return;
         if (!this.modificationAuthorizedObjectIds.has(e.target.id)) {
             this.logger.warn('Modification unauthorized');
@@ -251,9 +277,9 @@ class CanvasManager {
         this.logger.debug('emitObjectModified : ' + e.target.id);
         this.socket.emit('object modified', e.target.toObject(['id']));
     }
-    emitObjectAdded(e) {        // Objet ajouté par le client
-        if (e.target.id.startsWith('selection')) return;     // Si l'objet modifié est une sélection, on ne la renvoie pas
-        if (this.addedObjectIds.has(e.target.id)) {     // Si la création de l'objet a été envoyée par le serveur, on ne la renvoie pas
+    emitObjectAdded(e) { // Objet ajouté par le client
+        if (e.target.id.startsWith('selection')) return; // Si l'objet modifié est une sélection, on ne la renvoie pas
+        if (this.addedObjectIds.has(e.target.id)) { // Si la création de l'objet a été envoyée par le serveur, on ne la renvoie pas
             this.addedObjectIds.delete(e.target.id);
             return;
         }
@@ -261,9 +287,9 @@ class CanvasManager {
         this.logger.debug('emitObjectAdded : ' + e.target.id);
         this.socket.emit('object added', e.target.toObject(['id']));
     }
-    emitObjectRemoved(e) {      // Objet supprimé par le client
-        if (e.target.id.startsWith('selection')) return;     // Si l'objet modifié est une sélection, on ne la renvoie pas
-        if (this.removedObjectIds.has(e.target.id)) {   // Si la suppression de l'objet a été envoyée par le serveur, on ne la renvoie pas
+    emitObjectRemoved(e) { // Objet supprimé par le client
+        if (e.target.id.startsWith('selection')) return; // Si l'objet modifié est une sélection, on ne la renvoie pas
+        if (this.removedObjectIds.has(e.target.id)) { // Si la suppression de l'objet a été envoyée par le serveur, on ne la renvoie pas
             this.removedObjectIds.delete(e.target.id);
             return;
         }
@@ -271,13 +297,13 @@ class CanvasManager {
         this.logger.debug('emitObjectRemoved : ' + e.target.id);
         this.socket.emit('object removed', e.target.toObject(['id']));
     }
-    emitObjectsSelected(e) {    // Objets sélectionnés par le client
+    emitObjectsSelected(e) { // Objets sélectionnés par le client
         if (!this.checkRights()) return;
         this.logger.debug('emitObjectsSelected : ' + this.canvas.getActiveObjects().map(obj => obj.id).join(', '));
         this.socket.emit('objects selected', this.canvas.getActiveObjects().map(obj => obj.id));
         this.modificationAuthorizedObjectIds = new Set(this.canvas.getActiveObjects().map(obj => obj.id));
     }
-    emitObjectsDeselected(e) {  // Objets désélectionnés par le client
+    emitObjectsDeselected(e) { // Objets désélectionnés par le client
         if (!this.checkRights()) return;
         this.logger.debug('emitObjectsDeselected');
         this.socket.emit('objects deselected');
@@ -301,9 +327,9 @@ class CanvasManager {
         return this.canvas.getObjects().find(obj => obj.id === id);
     }
 
-	genId() {
-		return this.userId + '-' + this.id_obj++ + '-' + Math.floor(Math.random() * 1000);
-	}
+    genId() {
+        return this.userId + '-' + this.id_obj++ + '-' + Math.floor(Math.random() * 1000);
+    }
 
     updateSelectionRender() {
         this.logger.debug('updateSelectionRender');
@@ -311,9 +337,9 @@ class CanvasManager {
         this.selectedByOthersObjectIds.forEach((objectIds, userId) => {
             // Mettre à jour les sélections
             objectIds.forEach(objectId => {
-                let canvasObject = this.getObjectById(objectId);                          // Objet sélectionné
-                let selectionRec = this.getObjectById('selectionRec|' + objectId);        // Sélection de l'objet
-                let selectionLabel = this.getObjectById('selectionLabel|' + objectId);    // Étiquette de l'objet
+                let canvasObject = this.getObjectById(objectId); // Objet sélectionné
+                let selectionRec = this.getObjectById('selectionRec|' + objectId); // Sélection de l'objet
+                let selectionLabel = this.getObjectById('selectionLabel|' + objectId); // Étiquette de l'objet
                 if (!canvasObject) {
                     this.logger.warn('DESYNC : updateSelectionRender : Object not found in canvas');
                     return;
@@ -326,7 +352,7 @@ class CanvasManager {
                     this.logger.warn('DESYNC : updateSelectionRender : Label not found in canvas');
                     return;
                 }
-                
+
                 canvasObject.setCoords();
                 let boundingRect = canvasObject.getBoundingRect();
                 selectionRec.set({
