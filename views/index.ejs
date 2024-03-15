@@ -41,6 +41,9 @@
             position: fixed;
             left: 52%;
         }
+        textarea {
+            resize: none;
+        }
 
     </style>
 
@@ -49,20 +52,19 @@
 	<h1 class="title">Tableau Blanc</h1>
     <h2 class="info">Bienvenue sur Tableau Blanc une application qui vous permet de partager vous idée en temps réelle avec votre équipe créative</h2>
 	<div class="menu">
-        <label class="formLabel" for="userNameLb">Entré le nom désiré</label>
-        <textarea class="formInput" for="userName" type="text" name="userNameLb">
-        <br>
-        <br>
-        <label class="formLabel" for="roomLb">Code de tableau a rejoindre</label>
-        <textarea class="formInput" id="room" type="text" name="roomLb" onkeyup="success()">
-        <br>
-        <br>
-        <label class="formLabel" for="mdpLb">Mot de passe</label>
-        <textarea class="formInput" id="mdp" type="text" name="mdpLb" onkeyup="success()">
-        <br>
-        <br>
-        <button type="button" id="btn_create" style="position: fixed; left:45%">Créer salle</button>
-        <button type="button" id="btn_join" style=" position: fixed; left:50%" disabled>Rejoindre salle</button>
+        <form class="connectForm">
+            <label class="formLabel" for="userNameLb">Entré le nom désiré</label>
+            <input class="formInput" id="userName" type="text" name="userNameLb"><br>
+            <br>
+            <label class="formLabel" for="roomLb">Code de tableau a rejoindre</label>
+            <input class="formInput" id="room" type="text" name="roomLb" onkeyup="success()"><br>
+            <br>
+            <label class="formLabel" for="mdpLb">Mot de passe</label>
+            <input class="formInput" id="mdp" type="text" name="mdpLb" onkeyup="success()"><br>
+            <br>
+            <button type="button" id="btn_create" style="position: fixed; left:45%">Créer salle</button>
+            <button type="button" id="btn_join" style=" position: fixed; left:50%" disabled>Rejoindre salle</button>
+        </form>
 	</div>
 </body>
 <script>
@@ -73,12 +75,40 @@
 	var logger = new Logger(logLevel, logMode);
 
 	document.getElementById('btn_create').addEventListener('click', function() {
-		index.createRoom(document.getElementById("userName").value)
+        var name = document.getElementById("userName").value;
+        createRoom(name);
 	});
 
 	document.getElementById('btn_join').addEventListener('click', function() {
-		index.joinRoom(document.getElementById("userName").value,document.getElementById("room").value)
+        var name = document.getElementById("userName").value;
+        var room = document.getElementById("room").value;
+		joinRoom(name,room);
 	});
+
+    function success() 
+    {
+        if(document.getElementById("room").value==="") { 
+                document.getElementById('btn_join').disabled = true; 
+            } else { 
+                document.getElementById('btn_join').disabled = false;
+            }
+    };
+
+    function createRoom(dispayName)
+    {
+    //make sure to create a new room
+    //change view
+    //create & display room code
+}
+
+function joinRoom(dispayName,room)
+{
+    //validate if the room exist
+    //change view
+    //connect to it
+    
+}
+
 
 </script>
 </html>

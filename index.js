@@ -32,29 +32,6 @@ server.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
 });
 
-function success() {
-    if(document.getElementById("room").value==="") { 
-           document.getElementById('btn_join').disabled = true; 
-       } else { 
-           document.getElementById('btn_join').disabled = false;
-       }
-};
 
-createRoom(dispayName)
-{
-    //make sure to create a new room
-    res.render('draw', {
-        userId: dispayName
-    });
-    //create & display room code
-}
 
-joinRoom(dispayName,room)
-{
-    //validate if the room exist
-    //connect to it
-    res.render('draw', {
-        userId: dispayName
-    });
-}
 
