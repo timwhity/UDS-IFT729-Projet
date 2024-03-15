@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tableau blanc</title>
+	<script src="/socket.io/socket.io.js"></script>
+    <script src="logger.js"></script>
+
+    <style>
+        .title {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+			background-color: aquamarine;
+			padding: 10px;
+			border-radius: 20px;
+			border: 2px solid rgb(102, 94, 94);
+        }
+        .info {
+            position: fixed;
+            top: 6%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+			padding: 10px; 
+        }
+        .menu {
+            position: fixed;
+            top: 30%;
+            z-index: 1;
+			padding: 10px;
+        }
+        .formLabel{
+            position: fixed;
+            left: 40%;
+        }
+        .formInput{
+            position: fixed;
+            left: 52%;
+        }
+        textarea {
+            resize: none;
+        }
+
+    </style>
+
+</head>
+<body>
+	<h1 class="title">Tableau Blanc</h1>
+	<br>
+    <h2 class="info">Bienvenue sur Tableau Blanc une application qui vous permet de partager vos idées en temps réel avec votre équipe créative</h2>
+	<div class="menu">
+		<form class="connectForm" method="post" action="/">
+			<label class="formLabel" for="userIdLb">Votre idenfiant</label>
+			<input class="formInput" id="userId" type="text" name="userId"><br>
+			<br>
+			<!-- <label class="formLabel" for="roomLb">Code de tableau a rejoindre</label>
+            <input class="formInput" id="room" type="text" name="roomLb" onkeyup="success()"><br>
+            <br> -->
+			<label class="formLabel" for="mdpLb">Mot de passe du tableau</label>
+			<input class="formInput" id="mdp" type="text" name="mdp"><br>
+			<br>
+			<button type="submit" id="btn_create" style="position: fixed; left:45%" disabled>Créer salle</button>
+			<button type="submit" id="btn_join" style=" position: fixed; left:50%">Rejoindre salle</button>
+		</form>
+	</div>
+</body>
+<script>
+	const logLevel = 'DEBUG';
+	const logMode = 'ALERT';
+	var logger = new Logger(logLevel, logMode);
+
+	document.getElementById('btn_join').addEventListener('click', function(event) {
+        var userId = document.getElementById('userId').value;
+        if (!userId) {
+            event.preventDefault();
+            alert('Veuillez donner votre identifiant');
+        }
+    });
+
+
+</script>
+</html>
