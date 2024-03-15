@@ -1,17 +1,38 @@
 const express = require('express');
-
 const app = express();
+const server = require('http').Server(app)
 const port = 3000;
+const io = require('socket.io')(server);
 
+const logLevel = 'DEBUG';
+const logMode = 'CONSOLE';
+var ServerLogger = require('./server/serverLogger.js');
+var logger = new ServerLogger(logLevel, logMode);
+
+const ServerCanvasManager = require('./server/serverCanvasManager.js');
+const serverCanvas = new ServerCanvasManager(io, logger);
 
 app.set('view engine', 'ejs');
+app.use(express.static('public'));
 
 app.get('/', (req, res) => {
-	// Traitement sur l'url, sur les cookies, ... 
-	  res.render('index');
+    // Traitement sur l'url, sur les cookies, ... 
+    res.redirect('/draw')
 });
 
+app.get('/draw', (req, res) => {
 
-app.listen(port, () => {
-	  console.log(`Example app listening at http://localhost:${port}`);
+    let userId = req.query.user_id;
+    res.render('design', {
+        userId: userId
+    });
+})
+
+app.get('/design', (req, res) => {
+    res.render('design');
+})
+
+
+server.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`);
 });

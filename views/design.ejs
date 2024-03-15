@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="./output.css"> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+    <script src="canvasManager.js"></script>
+    <script src="logger.js"></script>
+
+    <title>Drawing page</title>
+
+    <style>
+        #canvas,
+        canvas {
+            z-index: 52000;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            font-family: "Inter", sans-serif;
+        }
+        
+        .container {
+            /*max-width: 1094px;*/
+            width: 75%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            border: 1px solid yellow;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+            height: 96px;
+            border-bottom: 4px solid #F3F3F6;
+            padding: 0px 24px;
+            .active-users {
+                font-size: 24px;
+                color: #49A600;
+                font-weight: 500;
+                margin-right: 48px;
+            }
+            .info {
+                h1 {
+                    font-size: 22px;
+                    font-weight: bold;
+                    color: #000000;
+                }
+                p {
+                    font-size: 16px;
+                    font-weight: 400;
+                    color: #6e6e6e;
+                    letter-spacing: -1px;
+                }
+                span {
+                    display: flex;
+                    gap: 12px;
+                }
+            }
+            .share {
+                cursor: pointer;
+                background-color: #4774D5;
+                color: white;
+                height: 54px;
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: 500;
+                padding: 0 24px;
+                gap: 12px;
+                * {
+                    cursor: pointer;
+                }
+            }
+        }
+        
+        .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #F3F2F2;
+            height: 48px;
+            width: 48px;
+            border-radius: 8px;
+            img {
+                width: 18px;
+                height: 18px;
+            }
+        }
+        
+        .flex {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        div.icons {
+            display: flex;
+            align-items: center;
+            border-radius: 8px;
+            gap: 16px;
+            padding: 12px 24px;
+            height: auto;
+            background-color: white;
+            max-width: fit-content;
+            margin: auto;
+            margin-top: 24px;
+            box-shadow: 0 0 0.93px rgba(0, 0, 0, 0.17), 0 0 3.13px rgba(0, 0, 0, 0.08), 0 7px 14px rgba(0, 0, 0, 0.05);
+        }
+        
+        .icons div {
+            border-radius: 6px;
+            padding: 12px;
+        }
+        
+        .icons div.active {
+            background-color: #E0DFFF;
+            img {
+                filter: invert(8%) sepia(56%) saturate(7356%) hue-rotate(246deg) brightness(69%) contrast(120%);
+                /* Add any additional styling for the icons as needed 
+                max-width: 100%;
+                height: auto;
+                */
+            }
+        }
+        
+        div:first-child.active img:first-of-type {
+            content: url('/drawing_icons/close_lock_icon.svg');
+        }
+        
+        .icons img {
+            width: 24px;
+            cursor: pointer;
+        }
+        
+        .welcome {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            img {
+                width: 300px;
+                opacity: 0.5;
+            }
+            p {
+                text-align: center;
+                color: #B8B8B8;
+                margin-top: 8px;
+                font-weight: bold;
+            }
+        }
+        
+        input {
+            height: 48px;
+            outline: none;
+            border: 1px solid#B8B8B8;
+            border-radius: 5px;
+        }
+        
+        .link-container {
+            border: 1px solid red;
+            width: fit-content;
+            p {
+                font-size: 14px;
+                font-weight: bold;
+                color: #061728;
+                margin-bottom: 12px;
+            }
+            div {
+                display: flex;
+                align-items: center;
+                div {
+                    height: 48px;
+                    background: #b1d2f3;
+                    color: #16212b;
+                    border-radius: 8px;
+                    align-items: center;
+                    padding: 0px 24px;
+                    display: flex;
+                    margin-right: 12px;
+                    font-weight: 500;
+                }
+                button {
+                    display: flex;
+                    gap: 8px;
+                    height: 48px;
+                    align-items: center;
+                    padding: 0px 24px;
+                    color: white;
+                    background: #77BEFF;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    img {
+                        filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(104deg) brightness(103%) contrast(103%);
+                    }
+                    p {
+                        color: white;
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="relative h-full w-full bg-white" style="height:100vh; top:0; position:absolute;z-index:-100;">
+        <div class="absolute h-full w-full bg-[radial-gradient(#D9DCE1_1px,transparent_2px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+    </div>
+
+    <header>
+        <div class="container">
+
+            <div class="flex simple">
+
+                <div class="icon arrow-right">
+                    <img class="arrow-right" src="/icons/Vector 8.svg" alt="not found" srcset="">
+                </div>
+                <div class="info">
+                    <h1>System Temps Reel</h1>
+                    <span>
+                        <p>Dernier mis a jour, Fev 14</p>
+                        <img src="/icons/Group.svg" alt="" srcset="">
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex simple">
+                <p class="active-users">4 actifs</p>
+                <div class="icon icon-search">
+                    <img src="/icons/Union.svg" alt="" srcset="">
+                </div>
+                <div class="icon icon-message new-message">
+                    <img src="/icons/Union-2.svg" alt="" srcset="">
+                </div>
+                <div class="share">
+                    <p>Partager</p>
+                    <img src="/icons/Union-1.svg" alt="" srcset="">
+                </div>
+            </div>
+
+
+
+        </div>
+
+    </header>
+
+    <main>
+
+        <div class="icons">
+            <div class="active  is--lock">
+
+                <img src="/drawing_icons/lock_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div>
+
+                <img src="/drawing_icons/hand_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div>
+
+                <img src="/drawing_icons/mouse_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div id="addRect">
+
+                <img src="/drawing_icons/rectangle_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div id="addCircle">
+
+                <img src="/drawing_icons/circle_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div id="addTriangle">
+
+                <img src="/drawing_icons/triangle_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div>
+
+                <img src="/drawing_icons/arrow_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div>
+
+                <img src="/drawing_icons/line_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div>
+
+                <img src="/drawing_icons/draw_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div>
+
+                <img src="/drawing_icons/write_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div>
+
+                <img src="/drawing_icons/textarea_icon.svg" alt="" class="drawing--icon">
+            </div>
+            <div>
+                <img src="/drawing_icons/image_icon.svg" alt="" class="drawing--icon">
+
+            </div>
+            <div id="del" class="active">
+
+                <img src="/drawing_icons/erase_icon.svg" alt="" class="drawing--icon">
+            </div>
+
+        </div>
+
+
+        <div class="welcome">
+            <img src="/logos_variation/Combined light icon.svg" alt="">
+
+            <p>Vous pouvez faire des dessins magnifique ici 🎊</p>
+        </div>
+
+
+    </main>
+    <canvas id="canvas"></canvas>
+</body>
+<script>
+    console.log('Hellow')
+    const icons = Array.from(document.querySelectorAll('.icons div'))
+    console.log(icons)
+        //icons.addEventListener('')
+    icons.forEach((icon, pos) => icon.addEventListener('click', (e) => myFunction(e)))
+
+    function myFunction(e) {
+        console.log(e)
+        const icons = Array.from(document.querySelectorAll('.icons div'))
+
+        icons.forEach(icon => {
+            if (!icon.classList.contains('is--lock') && !e.currentTarget.classList.contains('is--lock') && e.currentTarget != icon)
+                icon.classList.remove("active");
+
+        });
+
+        e.currentTarget.classList.toggle('active')
+        console.log(e.target)
+
+    }
+
+    function toggleActive(icon) {
+
+        return () => {
+            icon.classList.toggle('active')
+        }
+    }
+
+    function deActivateIcon(icon) {
+        return () => {
+            icon.classList.contains('active') ? icon.classList.remove('active') : null
+        }
+    }
+
+
+    const logLevel = 'DEBUG';
+    const logMode = 'ALERT';
+    const canvas = new fabric.Canvas('canvas', {
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+
+    var socket = io();
+    var logger = new Logger(logLevel, logMode);
+    var canvasManager = new CanvasManager(canvas, socket, logger, '<%= userId %>');
+
+    // Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
+    document.getElementById('addRect').addEventListener('click', function() {
+        console.log('creating rectangle')
+        canvasManager.createRec();
+    });
+
+    document.getElementById('addCircle').addEventListener('click', function() {
+        console.log('creating rectangle')
+        canvasManager.createCicle();
+    });
+
+    document.getElementById('addTriangle').addEventListener('click', function() {
+        console.log('creating rectangle')
+        canvasManager.createTriangle();
+    });
+
+    // Fait en sorte que le bouton "delRect" supprime le rectangle sélectionné
+    document.getElementById('del').addEventListener('click', function() {
+        canvasManager.del();
+    });
+</script>
+
+</html>
+
+</html>
