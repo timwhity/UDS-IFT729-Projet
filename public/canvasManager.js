@@ -238,6 +238,15 @@ class CanvasManager {
 
     //================================= BUTTONS ==================================
 
+    createText(){
+        var text = new fabric.Textbox('',  
+            { 
+                width: 450,
+                height:30
+            });
+        return text;
+    }
+
     createShape(shapeType) {
         if (!this.checkEditionRight()) return;
 
@@ -267,7 +276,7 @@ class CanvasManager {
     }
 
     createCircle() {
-        const circle = this.createShape('Circle1')
+        const circle = this.createShape('Circle')
         canvas.add(circle);
         canvas.setActiveObject(circle);
     }
@@ -283,7 +292,9 @@ class CanvasManager {
     }
 
     addText() {
-
+        const text = this.createText()
+        canvas.add(text);
+        canvas.setActiveObject(text);
     }
 
     addLine() {

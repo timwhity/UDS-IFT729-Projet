@@ -4,10 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Tableau blanc</title>
-	<script src="/socket.io/socket.io.js"></script>
-    <script src="logger.js"></script>
-
-    <style>
+	<style>
         .title {
             position: fixed;
             top: 0;
@@ -17,98 +14,66 @@
 			background-color: aquamarine;
 			padding: 10px;
 			border-radius: 20px;
-			border: 2px solid rgb(102, 94, 94);
+			border: 2px solid black;
         }
-        .info {
-            position: fixed;
-            top: 6%;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1;
-			padding: 10px; 
-        }
-        .menu {
-            position: fixed;
-            top: 30%;
-            z-index: 1;
-			padding: 10px;
-        }
-        .formLabel{
-            position: fixed;
-            left: 40%;
-        }
-        .formInput{
-            position: fixed;
-            left: 52%;
-        }
-        textarea {
-            resize: none;
+
+		#canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
         }
 
     </style>
-
 </head>
 <body>
-	<h1 class="title">Tableau Blanc</h1>
-    <h2 class="info">Bienvenue sur Tableau Blanc une application qui vous permet de partager vous idée en temps réelle avec votre équipe créative</h2>
-	<div class="menu">
-        <form class="connectForm">
-            <label class="formLabel" for="userNameLb">Entré le nom désiré</label>
-            <input class="formInput" id="userName" type="text" name="userNameLb"><br>
-            <br>
-            <label class="formLabel" for="roomLb">Code de tableau a rejoindre</label>
-            <input class="formInput" id="room" type="text" name="roomLb" onkeyup="success()"><br>
-            <br>
-            <label class="formLabel" for="mdpLb">Mot de passe</label>
-            <input class="formInput" id="mdp" type="text" name="mdpLb" onkeyup="success()"><br>
-            <br>
-            <button type="button" id="btn_create" style="position: fixed; left:45%">Créer salle</button>
-            <button type="button" id="btn_join" style=" position: fixed; left:50%" disabled>Rejoindre salle</button>
-        </form>
-	</div>
+	<h1 class="title">Tableau blanc</h1>
+	<canvas id="canvas"></canvas>
 </body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
 <script>
-	const logLevel = 'DEBUG';
-	const logMode = 'ALERT';
+	const canvas = new fabric.Canvas('canvas', {
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+var i = 1;
+//handler for moving objects on canvas
+var moveHandler = function (evt) {
+    var movingObject = evt.target;
+    console.log(movingObject.get('left'), movingObject.get('top'));
+};
 
-	var socket = io();
-	var logger = new Logger(logLevel, logMode);
+//handler for done modifying objects on canvas
+var modifiedHandler = function (evt) {
+    var modifiedObject = evt.target;
+    console.log(modifiedObject.get('left'), modifiedObject.get('top'));
+};
 
-	document.getElementById('btn_create').addEventListener('click', function() {
-        var name = document.getElementById("userName").value;
-        createRoom(name);
-	});
-
-	document.getElementById('btn_join').addEventListener('click', function() {
-        var name = document.getElementById("userName").value;
-        var room = document.getElementById("room").value;
-		joinRoom(name,room);
-	});
-
-    function success() 
-    {
-        if(document.getElementById("room").value==="") { 
-                document.getElementById('btn_join').disabled = true; 
-            } else { 
-                document.getElementById('btn_join').disabled = false;
-            }
-    };
-
-    function createRoom(dispayName)
-    {
-    //make sure to create a new room
-    //change view
-    //create & display room code
-}
-
-function joinRoom(dispayName,room)
-{
-    //validate if the room exist
-    //change view
-    //connect to it
-    
-}
+var customEvtHandler = function (evt) {
+    console.log("I was triggered by a custom event.");
+};
+var pathCreatedEvtHandler = function (evt) {
+    console.log("I was triggered by a path created event.", evt);
+	canvas.add(new fabric.Circle({
+         radius: 40,
+         fill: "#9370db",
+         top: 100*i,
+         left: 100,
+      }));
+	i++;
+};
+canvas.on('object:moving', moveHandler);
+canvas.on('object:modified', modifiedHandler);
+canvas.on('custom:event', customEvtHandler);
+canvas.on('path:created', pathCreatedEvtHandler);
 
 
+	let drawing = false;
+
+	canvas.isDrawingMode = true;
+	canvas.freeDrawingBrush.width = 5;
+	canvas.freeDrawingBrush.color = "#000000";
 </script>
 </html>
