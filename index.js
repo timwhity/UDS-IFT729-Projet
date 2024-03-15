@@ -3,13 +3,18 @@ const app = express();
 const server = require('http').Server(app)
 const port = 3000;
 const io = require('socket.io')(server);
+app.use(express.static(__dirname + '/public'));
 
 
 app.set('view engine', 'ejs');
 
+app.get('/design', (req, res) => {
+    res.render('design')
+})
+
 app.get('/', (req, res) => {
     // Traitement sur l'url, sur les cookies, ... 
-    res.render('index');
+    res.redirect('/design')
 });
 
 app.get('/home', (req, res) => {

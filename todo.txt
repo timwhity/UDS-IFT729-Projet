@@ -1,0 +1,5 @@
+- Side bar ()
+- Finish popup box
+- Understand functionality
+- Implement functionality
+- Chat functionality
