@@ -342,7 +342,114 @@
             <p>Vous pouvez faire des dessins magnifique ici 🎊</p>
         </div>
 
+        <aside id="sidebar">
+            <section id="widget_1"></section>
+            <section id="widget_2"></section>
+            <section id="widget_3"></section>
+        </aside>
 
+        <div class="collaborate">
+            <p>Nom</p>
+            <input type="text" placeholder="Entrez le nom de la page">
+
+            <div class="link-container">
+                <p>Lien</p>
+                <div>
+                    <div>
+                        https://ondessine.com/room/13
+                    </div>
+                    <button>
+                     <img src="/icons/copy_icon.svg" alt="">
+                    <p>Copier Lien</p>
+                </button>
+                </div>
+            </div>
+        </div>
+        <style>
+            .edit--object {
+                border: 1px solid blue;
+                position: absolute;
+                bottom: 10%;
+                left: 50%;
+                transform: translateX(-50%) translateY(-50%);
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                p {
+                    text-align: center;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 14px;
+                }
+                width: 65%;
+                padding:12px 24px;
+                background:black;
+                border-radius: 8px;
+                color: white !important;
+            }
+            
+            input[type="color"] {
+                -webkit-appearance: none;
+                border-radius: 8px;
+                width: 32px;
+                height: 32px;
+                cursor: pointer;
+            }
+            
+            input[type="color"]::-webkit-color-swatch-wrapper {
+                padding: 0;
+                border-radius: 8px;
+            }
+            
+            input[type="color"]::-webkit-color-swatch {
+                border: none;
+                border-radius: 4px;
+            }
+            
+            .editable * {
+                margin: 0px !important;
+                gap: 0px !important;
+            }
+            
+            .text--edit {
+                cursor: pointer;
+                padding: 8px;
+                border-radius: 4px;
+                img {
+                    width: 20px;
+                }
+            }
+            
+            .text--edit.active {
+                background: white;
+                img.italic {
+                    content: url('/icons/italic.svg');
+                }
+                img.bold {
+                    content: url('/icons/bold.svg');
+                }
+            }
+        </style>
+        <div class="edit--object flex">
+            <div class="editable background--edit flex">
+                <p>Background-color <br> or Color</p>
+                <input type="color" id="head" name="background" value="#a4a4a4" />
+            </div>
+
+            <div class=" editable background--edit flex">
+                <p>Border color</p>
+                <input type="color" id="head" name="border" value="#a4a4a4" />
+            </div>
+
+            <div class="text--edit">
+                <img class="bold" src="/icons/bold-white.svg" alt="">
+            </div>
+            <div class="text--edit active">
+                <img class="italic" src="/icons/italic-white.svg" alt="">
+            </div>
+
+
+        </div>
     </main>
     <canvas id="canvas"></canvas>
 </body>
@@ -393,7 +500,6 @@
             icon.classList.contains('active') ? icon.classList.remove('active') : null
         }
     }
-
 
     const logLevel = 'DEBUG';
     const logMode = 'ALERT';
