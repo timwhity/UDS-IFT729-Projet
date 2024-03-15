@@ -455,21 +455,24 @@
 </body>
 <script>
     console.log('Hellow')
-    let isReadOnly = false;
+
+    var userId = '<%= userId %>';
+    var writePermission = '<%= writePermission %>' === 'true';
+
     const icons = Array.from(document.querySelectorAll('.icons div'))
     console.log(icons)
         //icons.addEventListener('')
-    if(!isReadOnly){
+    if(writePermission){
         icons.forEach((icon, pos) => icon.addEventListener('click', (e) => myFunction(e)))
     }else{
         icons.forEach(icon => {
-                if(!icon.classList.contains("hand-icon")){
-                    icon.classList.remove("active");
-                    icon.classList.add("disabled");
-                    if(icon.classList.contains("is--lock")){
-                        icon.classList.add("remove-item");
-                    }
+            if(!icon.classList.contains("hand-icon")){
+                icon.classList.remove("active");
+                icon.classList.add("disabled");
+                if(icon.classList.contains("is--lock")){
+                    icon.classList.add("remove-item");
                 }
+            }
         });
     }
 
@@ -510,7 +513,7 @@
 
     var socket = io();
     var logger = new Logger(logLevel, logMode);
-    var canvasManager = new CanvasManager(canvas, socket, logger, '<%= userId %>');
+    var canvasManager = new CanvasManager(canvas, socket, logger, userId, writePermission);
 
     // Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
     document.getElementById('addRect').addEventListener('click', function() {

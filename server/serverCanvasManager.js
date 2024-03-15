@@ -4,7 +4,7 @@ class serverCanvasManager {
         this.logger = logger;
 
         this.socketId2Id = new Map(); // A chaque socket_id, on associe un id d'utilisateur
-        this.connectedUsers = new Map(); // A chaque id d'utilisateur connecté, on associe {selecedObjectsIds: [], socket_id: 0, state: 'uninitialized'}
+        this.connectedUsers = new Map(); // A chaque id d'utilisateur connecté, on associe {selecedObjectsIds: [], socket_id: 0, writePermission: false}
         this.objects = []; // On stocke les objets du tableau blanc
 
         this.psw = "admin"; // Mot de passe d'édition temporaire
@@ -16,7 +16,7 @@ class serverCanvasManager {
             this.logger.debug('A user connected with socket : ' + socket.id);
 
             // On attend un message d'initialisation de l'utilisateur pour lui donner ses droits
-            socket.on('connection-asked', (userId, psw) => {
+            socket.on('connection-asked', (userId, writePermission) => {
                 this.logger.debug('User ' + userId + ' asked for initialization');
                 if (this.connectedUsers.has(userId)) {
                     this.logger.warn('User ' + userId + ' already initialized');
@@ -28,13 +28,13 @@ class serverCanvasManager {
                     return;
                 }
 
-                const state = (psw === this.psw) ? 'writer' : 'reader';
-                this.connectedUsers.set(userId, { selectedObjectsIds: [], socket_id: socket.id, state: state });
+                // const state = (psw === this.psw) ? 'writer' : 'reader';
+                this.connectedUsers.set(userId, { selectedObjectsIds: [], socket_id: socket.id, writePermission: writePermission });
                 this.socketId2Id.set(socket.id, userId);
 
-				this.logger.debug('User ' + userId + ' initialized with state ' + state);
+				this.logger.debug('User ' + userId + ' initialized with writePermission ' + writePermission);
 				this.logger.debug('User ' + userId + ' initialized with objects ' + this.objects);
-				socket.emit('connection-ok', { state: state, objects: this.objects, users: Array.from(this.connectedUsers.keys()) });
+				socket.emit('connection-ok', {objects: this.objects, users: Array.from(this.connectedUsers.keys()) });
 				socket.broadcast.emit('user connected', userId);
 			});
 		
@@ -94,7 +94,7 @@ class serverCanvasManager {
             this.logger.warn('User ' + userId + ' is not the right user');
             socket.emit('error', 'You are not the right user');
             return false;
-        } else if (this.connectedUsers.get(userId).state !== 'writer') {
+        } else if (!this.connectedUsers.get(userId).writePermission) {
             this.logger.warn('User ' + userId + ' does not have the rights to do this action');
             socket.emit('error', 'You do not have the rights to do this action');
             return false;

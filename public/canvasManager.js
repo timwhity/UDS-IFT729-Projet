@@ -5,11 +5,11 @@ const COLORS = ['rgba(200,0,0,1)', 'rgba(0,200,0,1)', 'rgba(0,0,200,1)', 'rgba(2
 ];
 
 class CanvasManager {
-    constructor(canvas, socket, logger, userId) {
+    constructor(canvas, socket, logger, userId, writePermission) {
         this.canvas = canvas;
         this.socket = socket;
         this.logger = logger;
-        this.mode = 'uninitialized'
+        this.writePermission = writePermission;
 
         this.userId = userId;
         this.id_obj = 0; // Utilisé pour créer les id des objets
@@ -42,31 +42,20 @@ class CanvasManager {
             this.updateSelectionRender();
         }.bind(this));
 
-        // Initialisation
+        // Initialisation 
+        if (!this.writePermission) {
+            alert('You are in read-only mode');
+        }
         this.askConnection();
         this.socket.on('connection-ok', this.connectionOk.bind(this));
     }
 
     //============================== INITIALIZATION ==============================
     askConnection() {
-        this.logger.debug('Asking for connection');
-        if (!this.userId) {
-            this.userId = prompt('Enter your username');
-            if (!this.userId) {
-                this.userId = Math.random().toString(36).substring(7);
-            }
-        }
-        let psw = prompt('Enter the password');
-        this.logger.debug('User ' + this.userId + ' asked for connection');
-        this.socket.emit('connection-asked', this.userId, psw);
+        this.socket.emit('connection-asked', this.userId, this.writePermission);
     }
     connectionOk(obj) {
         this.logger.debug('ConnectionOk');
-        this.mode = obj.state;
-        if (this.mode !== 'writer') {
-            alert('You are in read-only mode');
-        }
-        
         // Récupérérer les objets
         this.logger.debug(obj.objects);
         obj.objects.forEach(object => {
@@ -154,7 +143,7 @@ class CanvasManager {
                     this.logger.warn('DESYNC : handleSelectionModification : Object not found in canvas');
                     return;
                 }
-                if (this.mode === 'writer') {
+                if (this.writePermission) {
                     this.logger.debug('Object ' + canvasObject.id + ' is now selectable');
                     canvasObject.set('selectable', true);
                     canvasObject.set('evented', true);
@@ -248,8 +237,6 @@ class CanvasManager {
     }
 
     createShape(shapeType) {
-        if (!this.checkEditionRight()) return;
-
         // Ensure shapeType is a valid shape constructor provided by Fabric.js
         if (!fabric[shapeType]) {
             console.error("Invalid shape type:", shapeType);
@@ -270,47 +257,51 @@ class CanvasManager {
     }
 
     createRec() {
+        if (!this.writePermission) return;
         const rectangle = this.createShape('Rect')
         canvas.add(rectangle);
         canvas.setActiveObject(rectangle);
     }
 
     createCircle() {
+        if (!this.writePermission) return;
         const circle = this.createShape('Circle')
         canvas.add(circle);
         canvas.setActiveObject(circle);
     }
 
     createTriangle() {
+        if (!this.writePermission) return;
         const triangle = this.createShape('Triangle')
         canvas.add(triangle);
         canvas.setActiveObject(triangle);
     }
 
     addImage() {
-
+        if (!this.writePermission) return;
     }
 
     addText() {
+        if (!this.writePermission) return;
         const text = this.createText()
         canvas.add(text);
         canvas.setActiveObject(text);
     }
 
     addLine() {
-
+        if (!this.writePermission) return;
     }
 
     addPencil() {
-
+        if (!this.writePermission) return;
     }
 
     addEraser() {
-
+        if (!this.writePermission) return;
     }
 
     del() {
-        if (!this.checkEditionRight()) return;
+        if (!this.writePermission) return;
         for (const obj of canvas.getActiveObjects()) {
             canvas.remove(obj);
         }
@@ -380,13 +371,9 @@ class CanvasManager {
     //============================= OTHERS =============================
 
     checkRights() {
-        if (this.mode === 'writer') return true;
+        if (this.writePermission) return true;
         this.logger.warn('Modification should be unauthorized');
         return false;
-    }
-
-    checkEditionRight() {
-        return this.mode === 'writer';
     }
 
     getObjectById(id) {
