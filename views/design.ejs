@@ -152,6 +152,10 @@
             width: 24px;
             cursor: pointer;
         }
+
+        .remove-item{
+            display:none;
+        }
         
         .welcome {
             position: absolute;
@@ -178,6 +182,11 @@
             outline: none;
             border: 1px solid#B8B8B8;
             border-radius: 5px;
+        }
+
+        .disabled {
+            pointer-events: none;
+            opacity: 0.4;
         }
         
         .link-container {
@@ -275,7 +284,7 @@
 
                 <img src="/drawing_icons/lock_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div>
+            <div class="hand-icon">
 
                 <img src="/drawing_icons/hand_icon.svg" alt="" class="drawing--icon">
             </div>
@@ -291,7 +300,7 @@
 
                 <img src="/drawing_icons/circle_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div id="addTriangle">
+            <div id="addTriangle" class="disabled">
 
                 <img src="/drawing_icons/triangle_icon.svg" alt="" class="drawing--icon">
             </div>
@@ -339,10 +348,23 @@
 </body>
 <script>
     console.log('Hellow')
+    let isReadOnly = false;
     const icons = Array.from(document.querySelectorAll('.icons div'))
     console.log(icons)
         //icons.addEventListener('')
-    icons.forEach((icon, pos) => icon.addEventListener('click', (e) => myFunction(e)))
+    if(!isReadOnly){
+        icons.forEach((icon, pos) => icon.addEventListener('click', (e) => myFunction(e)))
+    }else{
+        icons.forEach(icon => {
+                if(!icon.classList.contains("hand-icon")){
+                    icon.classList.remove("active");
+                    icon.classList.add("disabled");
+                    if(icon.classList.contains("is--lock")){
+                        icon.classList.add("remove-item");
+                    }
+                }
+        });
+    }
 
     function myFunction(e) {
         console.log(e)
