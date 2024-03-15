@@ -1,37 +1,36 @@
-
 class serverCanvasManager {
-	constructor(io, logger) {
-		this.io = io;
-		this.logger = logger;
-		
-		this.socketId2Id = new Map();		// A chaque socket_id, on associe un id d'utilisateur
-		this.connectedUsers = new Map();	// A chaque id d'utilisateur connecté, on associe {selecedObjectsIds: [], socket_id: 0, state: 'uninitialized'}
-		this.objects = [];					// On stocke les objets du tableau blanc
+    constructor(io, logger) {
+        this.io = io;
+        this.logger = logger;
 
-		this.psw = "admin"; 	// Mot de passe d'édition temporaire
-		this.init();
-	}
+        this.socketId2Id = new Map(); // A chaque socket_id, on associe un id d'utilisateur
+        this.connectedUsers = new Map(); // A chaque id d'utilisateur connecté, on associe {selecedObjectsIds: [], socket_id: 0, state: 'uninitialized'}
+        this.objects = []; // On stocke les objets du tableau blanc
 
-	init() {
-		this.io.on('connection', (socket) => {
-			this.logger.debug('A user connected with socket : ' + socket.id);
+        this.psw = "admin"; // Mot de passe d'édition temporaire
+        this.init();
+    }
 
-			// On attend un message d'initialisation de l'utilisateur pour lui donner ses droits
-			socket.on('connection-asked', (userId, psw) => {
-				this.logger.debug('User ' + userId + ' asked for initialization');
-				if (this.connectedUsers.has(userId)) {
-					this.logger.warn('User ' + userId + ' already initialized');
-					socket.emit('error', 'Your id is already used');
-					return;
-				} else if (this.socketId2Id.has(socket.id)) {
-					this.logger.warn('User ' + userId + ' already initialized');
-					socket.emit('error', 'You are already initialized');
-					return;
-				}
+    init() {
+        this.io.on('connection', (socket) => {
+            this.logger.debug('A user connected with socket : ' + socket.id);
 
-				const state = psw === this.psw ? 'writer' : 'reader';
-				this.connectedUsers.set(userId, { selectedObjectsIds: [], socket_id: socket.id, state: state });
-				this.socketId2Id.set(socket.id, userId);
+            // On attend un message d'initialisation de l'utilisateur pour lui donner ses droits
+            socket.on('connection-asked', (userId, psw) => {
+                this.logger.debug('User ' + userId + ' asked for initialization');
+                if (this.connectedUsers.has(userId)) {
+                    this.logger.warn('User ' + userId + ' already initialized');
+                    socket.emit('error', 'Your id is already used');
+                    return;
+                } else if (this.socketId2Id.has(socket.id)) {
+                    this.logger.warn('User ' + userId + ' already initialized');
+                    socket.emit('error', 'You are already initialized');
+                    return;
+                }
+
+                const state = (psw === this.psw) ? 'writer' : 'reader';
+                this.connectedUsers.set(userId, { selectedObjectsIds: [], socket_id: socket.id, state: state });
+                this.socketId2Id.set(socket.id, userId);
 
 				this.logger.debug('User ' + userId + ' initialized with state ' + state);
 				this.logger.debug('User ' + userId + ' initialized with objects ' + this.objects);
@@ -67,40 +66,40 @@ class serverCanvasManager {
 				socket.broadcast.emit('objects deselected', this.socketId2Id.get(socket.id));
 			});
 
-			socket.on('disconnect', () => {
-				this.logger.debug('A user disconnected with socket : ' + socket.id);
-				const userId = this.socketId2Id.get(socket.id);
-				if (userId) {
-					this.logger.debug('He had id : ' + userId);
-					this.socketId2Id.delete(socket.id);
-					this.connectedUsers.delete(userId);
-					socket.broadcast.emit('user disconnected', userId);
-				}
-			});
-		});
-	}
+            socket.on('disconnect', () => {
+                this.logger.debug('A user disconnected with socket : ' + socket.id);
+                const userId = this.socketId2Id.get(socket.id);
+                if (userId) {
+                    this.logger.debug('He had id : ' + userId);
+                    this.socketId2Id.delete(socket.id);
+                    this.connectedUsers.delete(userId);
+                    socket.broadcast.emit('user disconnected', userId);
+                }
+            });
+        });
+    }
 
-	checkRights(socket) {
-		const userId = this.socketId2Id.get(socket.id);
-		if (!userId) {
-			this.logger.warn('User with socket ' + socket.id + ' is not initialized');
-			socket.emit('error', 'You are not initialized');
-			return false;
-		} else if (!this.connectedUsers.has(userId)) {
-			this.logger.warn('User ' + userId + ' is not initialized (This should not happen)');
-			socket.emit('error', 'You are not initialized (This should not happen)');
-			return false;
-		} else if (!this.connectedUsers.get(userId).socket_id === socket.id) {
-			this.logger.warn('User ' + userId + ' is not the right user');
-			socket.emit('error', 'You are not the right user');
-			return false;
-		} else if (this.connectedUsers.get(userId).state !== 'writer') {
-			this.logger.warn('User ' + userId + ' does not have the rights to do this action');
-			socket.emit('error', 'You do not have the rights to do this action');
-			return false;
-		}
-		return true;
-	}
+    checkRights(socket) {
+        const userId = this.socketId2Id.get(socket.id);
+        if (!userId) {
+            this.logger.warn('User with socket ' + socket.id + ' is not initialized');
+            socket.emit('error', 'You are not initialized');
+            return false;
+        } else if (!this.connectedUsers.has(userId)) {
+            this.logger.warn('User ' + userId + ' is not initialized (This should not happen)');
+            socket.emit('error', 'You are not initialized (This should not happen)');
+            return false;
+        } else if (!this.connectedUsers.get(userId).socket_id === socket.id) {
+            this.logger.warn('User ' + userId + ' is not the right user');
+            socket.emit('error', 'You are not the right user');
+            return false;
+        } else if (this.connectedUsers.get(userId).state !== 'writer') {
+            this.logger.warn('User ' + userId + ' does not have the rights to do this action');
+            socket.emit('error', 'You do not have the rights to do this action');
+            return false;
+        }
+        return true;
+    }
 }
 
 
