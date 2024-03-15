@@ -320,7 +320,7 @@
 
                 <img src="/drawing_icons/write_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div>
+            <div id="addText">
 
                 <img src="/drawing_icons/textarea_icon.svg" alt="" class="drawing--icon">
             </div>
@@ -420,6 +420,11 @@
     document.getElementById('addTriangle').addEventListener('click', function() {
         console.log('creating rectangle')
         canvasManager.createTriangle();
+    });
+
+    document.getElementById('addText').addEventListener('click', function() {
+        console.log('creating Text')
+        canvasManager.addText();
     });
 
     // Fait en sorte que le bouton "delRect" supprime le rectangle sélectionné

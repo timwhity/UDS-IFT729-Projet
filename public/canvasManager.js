@@ -221,6 +221,15 @@ class CanvasManager {
 
     //================================= BUTTONS ==================================
 
+    createText(){
+        var text = new fabric.Textbox('',  
+            { 
+                width: 450,
+                height:30
+            });
+        return text;
+    }
+
     createShape(shapeType) {
         if (!this.checkEditionRight()) return;
 
@@ -266,7 +275,9 @@ class CanvasManager {
     }
 
     addText() {
-
+        const text = this.createText()
+        canvas.add(text);
+        canvas.setActiveObject(text);
     }
 
     addLine() {
