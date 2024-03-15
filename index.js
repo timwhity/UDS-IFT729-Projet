@@ -15,13 +15,6 @@ const serverCanvas = new ServerCanvasManager(io, logger);
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-/*
-app.get('/', (req, res) => {
-    // Traitement sur l'url, sur les cookies, ... 
-    res.redirect('/draw')
-});
-*/
-
 app.get('/draw', (req, res) => {
 
     let userId = req.query.user_id;
@@ -34,43 +27,6 @@ app.get('/', (req, res) => {
     // Traitement sur l'url, sur les cookies, ... 
     res.render('\index')
 });
-
-
-
-app.get('/', (req, res) => {
-    // Traitement sur l'url, sur les cookies, ... 
-    res.render('\index')
-});
-
-io.on('connection', (socket) => {
-    console.log('A user connected with socket : ', socket.id);
-
-    socket.on('object modified', (object) => {
-        logger.debug('object modified');
-        socket.broadcast.emit('object modified', object);
-    });
-    socket.on('object added', (object) => {
-        logger.debug('object added');
-        socket.broadcast.emit('object added', object);
-    });
-    socket.on('object removed', (object) => {
-        logger.debug('object removed');
-        socket.broadcast.emit('object removed', object);
-    });
-    socket.on('objects selected', (objectIds) => {
-        logger.debug('objects selected');
-        socket.broadcast.emit('objects selected', { userId: socket.id, objectIds: objectIds });
-    });
-    socket.on('objects deselected', () => {
-        logger.debug('objects deselected');
-        socket.broadcast.emit('objects deselected', socket.id);
-    });
-    socket.on('disconnect', () => {
-        console.log('A user disconnected with socket : ', socket.id);
-        socket.broadcast.emit('objects deselected', socket.id);     // On désélectionne les objets de l'utilisateur qui se déconnecte
-    });
-});
-
 
 server.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
