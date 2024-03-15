@@ -1,11 +1,9 @@
-class Logger {
+class ServerLogger {
 
-	/* Console : log uniquement dans la console, Alert : log console + alerte en cas de warn ou error */
 	LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
-	MODES = ['CONSOLE', 'FILE', 'ALERT'];
+	MODES = ['CONSOLE', 'FILE'];
 
-
-	constructor(level, mode, prefix = "") {
+	constructor(level, mode, prefix = "Server") {
 		if (!this.LEVELS.includes(level)) {
 			throw new Error('Invalid level');
 		}
@@ -24,12 +22,8 @@ class Logger {
 		this.debug('Logger initialized');
 	}
 
-	intern_log(message, level) {
+	intern_log(message) {
 		switch (this.mode) {
-			case 'ALERT':
-				if (level === 'ERROR' || level === 'WARN') {
-					alert(message);
-				}
 			case 'CONSOLE':
 				console.log(message);
 				break;
@@ -46,7 +40,7 @@ class Logger {
 		if (this.LEVELS.indexOf(level) < this.LEVELS.indexOf(this.level)) {
 			return;
 		}
-		this.intern_log(level + " " + this.prefix + " » " + message, level);
+		this.intern_log(level + " " + this.prefix + " » " + message);
 	}
 
 	debug(message) {
@@ -62,3 +56,5 @@ class Logger {
 		this.log(message, 'ERROR');
 	}
 }
+
+module.exports = ServerLogger;

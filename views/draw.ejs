@@ -72,38 +72,26 @@
 </body>
 
 <script>
+	const logLevel = 'DEBUG';
+	const logMode = 'ALERT';
 	const canvas = new fabric.Canvas('canvas', {
         width: window.innerWidth,
         height: window.innerHeight
     });
-	const userId = '<%- userId %>';
-	let id = 0;
-	function genId() {
-		return userId + '-' + id++ + '-' + Math.floor(Math.random() * 1000);
-	}
+
+	var socket = io();
+	var logger = new Logger(logLevel, logMode);
+	var canvasManager = new CanvasManager(canvas, socket, logger, '<%= userId %>');
 
 	// Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
 	document.getElementById('addRect').addEventListener('click', function() {
-		var rec = new fabric.Rect({
-			left: 100,
-			top: 100,
-			fill: 'red',
-			width: 20,
-			height: 20,
-			id: genId()
-		});
-		console.log(rec.id);
-		canvas.add(rec);
-		canvas.setActiveObject(rec);
+		canvasManager.createRec();
 	});
 
 	// Fait en sorte que le bouton "delRect" supprime le rectangle sélectionné
 	document.getElementById('del').addEventListener('click', function() {
-		canvas.remove(canvas.getActiveObject());
+		canvasManager.del();
 	});
 
-	var socket = io();
-	var logger = new Logger('<%- logLevel %>', '<%- logMode %>');
-	var canvasManager = new CanvasManager(canvas, socket, logger);
 </script>
 </html>
