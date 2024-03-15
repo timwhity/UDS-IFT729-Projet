@@ -225,7 +225,8 @@ class CanvasManager {
         var text = new fabric.Textbox('',  
             { 
                 width: 450,
-                height:30
+                height:30,
+                id: this.genId()
             });
         return text;
     }
