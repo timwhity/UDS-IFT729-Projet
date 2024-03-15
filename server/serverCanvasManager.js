@@ -41,6 +41,7 @@ class serverCanvasManager {
 			socket.on('object modified', (object) => {
 				if (!this.checkRights(socket)) return;
 				this.logger.debug('object modified');
+				this.objects.splice(this.objects.findIndex(obj=> (obj.id==object.id)),1,object);
 				socket.broadcast.emit('object modified', object);
 			});
 			socket.on('object added', (object) => {
@@ -52,7 +53,7 @@ class serverCanvasManager {
 			socket.on('object removed', (object) => {
 				if (!this.checkRights(socket)) return;
 				this.logger.debug('object removed');
-				this.objects.at(this.objects.findIndex(obj=> (obj.id==object.id))).delete;
+				this.objects.splice(this.objects.findIndex(obj=> (obj.id==object.id)),1);
 				socket.broadcast.emit('object removed', object);
 			});
 			socket.on('objects selected', (objectIds) => {

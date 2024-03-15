@@ -70,13 +70,21 @@ class CanvasManager {
         // Récupérérer les objets
         this.logger.debug(obj.objects);
         obj.objects.forEach(object => {
+            this.logger.debug('object id : ' + object.id);
             this.addedObjectIds.add(object.id);
-            fabric.util.enlivenObjects([object], function(enlivenedObjects) {
-                this.logger.debug('handleObjectAdded : ' + enlivenedObjects[0].id);
-                this.canvas.add(enlivenedObjects[0]);
-                this.canvas.renderAll();
-            })
         })
+
+        fabric.util.enlivenObjects(obj.objects, function(enlivenedObjects) {
+            if(enlivenedObjects.length>0)
+            {
+                enlivenedObjects.forEach(object => {
+                    this.logger.debug('handleObjectAdded : ' + object);
+                    this.canvas.add(object);
+                });
+                
+            }
+        }.bind(this));
+        this.canvas.renderAll();
 
         // Initialiser les autres utilisateurs
         obj.users.forEach(userId => {
