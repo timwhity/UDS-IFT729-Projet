@@ -250,7 +250,7 @@ class CanvasManager {
     }
 
     createCircle() {
-        const circle = this.createShape('Circle1')
+        const circle = this.createShape('Circle')
         canvas.add(circle);
         canvas.setActiveObject(circle);
     }
