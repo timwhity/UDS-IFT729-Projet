@@ -23,9 +23,13 @@ app.get('/', (req, res) => {
 app.get('/draw', (req, res) => {
 
     let userId = req.query.user_id;
-    res.render('draw', {
+    res.render('design', {
         userId: userId
     });
+})
+
+app.get('/design', (req, res) => {
+    res.render('design');
 })
 
 
