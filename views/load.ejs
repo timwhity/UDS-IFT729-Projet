@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="./output.css"> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+    <script src="canvasManager.js"></script>
+    <script src="logger.js"></script>
+</head>
+<style>
+    body {
+        overflow: hidden;
+    }
+    
+    button {
+        background-color: black;
+        color: white;
+        padding: 10 24px;
+        border-radius: 5px;
+    }
+    
+    .send--message {
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 16px;
+        font-weight: bold;
+        width: 100px;
+        height: 50px;
+        background: #6AC5AB;
+        border-radius: 4px;
+        margin-left: 10px;
+    }
+    
+    .reply {
+        background-color: #324F87;
+        border-top: 1px solid #425C8E;
+        display: flex;
+        gap: 4px;
+        padding: 12px 24px;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+    }
+    
+    .side {
+        position: absolute;
+        top: 60px;
+        right: 0;
+        width: 20vw;
+        background-color: #304A7C;
+        max-height: calc(100vh - 100px);
+        height: 100%;
+        color: white;
+    }
+    
+    textarea {
+        height: 20px;
+        width: 100%;
+        color: rgb(241, 241, 241) !important;
+        resize: none !important;
+        outline: none;
+        background-color: transparent !important;
+        line-height: 1.5;
+    }
+    
+    .comment {
+        max-width: 300px;
+        margin: 10px 16px;
+        h2 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        small {
+            color: #E1E1E1;
+        }
+        p {
+            margin-top: 16px;
+            color: #E9E9E9;
+        }
+    }
+    
+    .comments {
+        height: fit-content;
+        padding-top: 60px;
+    }
+    
+    .comments--container {
+        height: 100%;
+        overflow-y: auto;
+        height: calc(100% - 80px);
+        margin-bottom: 20px;
+    }
+</style>
+
+<body>
+    hello world
+    <canvas id="canvas">
+
+    </canvas>
+    <button id="load">Click me boy</button>
+    <div class="side">
+        <div class="comments--container">
+            <div class="comments flex flex-col">
+                <div class="comment">
+                    <h2>Esther Howard</h2>
+                    <small>July 25, 2021 2:30 PM</small>
+                    <p>
+                        I guess the IA is looking good for now. Let’s get started with the next task. I hope everyone agrees?
+                    </p>
+
+                </div>
+            </div>
+        </div>
+        <div class="reply">
+            <textarea name="reply--text" id="" cols="30" rows="10" placeholder="Your message here ..."></textarea>
+            <span class="send--message">Send  </span>
+        </div>
+    </div>
+</body>
+
+<script>
+    function createComment(message, name) {
+        // Create div element with class "comment"
+        var div = document.createElement('div');
+        div.className = 'comment';
+
+        // Create h2 element for name
+        var h2 = document.createElement('h2');
+        h2.textContent = name;
+
+        // Create small element for timestamp
+        var small = document.createElement('small');
+        var timestamp = new Date().toLocaleString();
+        small.textContent = timestamp;
+
+        // Create p element for message
+        var p = document.createElement('p');
+        p.textContent = message;
+
+        // Append h2, small, and p elements to div
+        div.appendChild(h2);
+        div.appendChild(small);
+        div.appendChild(p);
+
+        // Return the created div element
+        //  return div;
+        document.querySelector('.comments').appendChild(div)
+    }
+
+    const commentButton = document.querySelector(".send--message")
+
+    commentButton.addEventListener("click", () => {
+        console.log('clicked')
+        reply = document.getElementsByTagName("textarea")[0].value
+        console.log(reply)
+        if (reply != "") {
+            createComment(reply, "Johan")
+        }
+        document.getElementsByTagName("textarea")[0].value = ""
+    })
+
+
+    const canvas = new fabric.Canvas('canvas', {
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+    const button = document.getElementById('load')
+
+    button.addEventListener('click', async() => {
+        console.log('CLicked')
+        loadCanvas()
+    })
+
+    async function loadCanvas() {
+        console.log('loading canvas')
+        try {
+            const response = await fetch('http://localhost:3000/getLoad'); // Replace the URL with the actual endpoint
+
+            const data = await response.json();
+
+            const canvasData = JSON.parse(data)
+
+            canvas.loadFromJSON(canvasData)
+
+            //return data.name;
+            console.log("baby is working" + data)
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+</script>
+
+
+
+
+</html>

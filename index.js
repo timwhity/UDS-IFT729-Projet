@@ -3,6 +3,7 @@ const app = express();
 const server = require('http').Server(app)
 const port = 3000;
 const io = require('socket.io')(server);
+const cors = require('cors');
 
 const logLevel = 'DEBUG';
 const logMode = 'CONSOLE';
@@ -12,7 +13,12 @@ var logger = new ServerLogger(logLevel, logMode);
 const ServerCanvasManager = require('./server/serverCanvasManager.js');
 const serverCanvas = new ServerCanvasManager(io, logger);
 
+// Connection a la base de données
+const { loadFromDb, saveToDb } = require('./server/connectionDb.js')
+
+
 app.set('view engine', 'ejs');
+app.use(cors())
 app.use(express.static('public'));
 // Analyse les corps des requêtes en JSON
 app.use(express.json());
@@ -40,7 +46,7 @@ app.post('/', (req, res) => {
     const writePermission = (mdp === "admin")
 
     req.session.userId = userId;
-    req.session.boardId = 1;      // Id de l'unique tableau pour le moment
+    req.session.boardId = 1; // Id de l'unique tableau pour le moment
     req.session.writePermission = writePermission;
 
     console.log(`Connection : ${userId} - ${writePermission}`);
@@ -52,7 +58,7 @@ app.get('/draw', (req, res) => {
     if (!req.session.boardId || req.session.boardId != 1) {
         res.render('error404');
     } else {
-         const { userId, writePermission } = req.session;
+        const { userId, writePermission } = req.session;
 
         res.render('design', {
             userId: userId,
@@ -65,6 +71,23 @@ app.get('/', (req, res) => {
     // Traitement sur l'url, sur les cookies, ... 
     res.render('\index')
 });
+
+
+app.get('/getLoad', async(req, res) => {
+    const data = await loadFromDb()
+    res.json(data)
+})
+
+
+app.get('/load', (req, res) => res.render('load'))
+
+
+app.post('/database', async(req, res) => {
+    console.log(req.body)
+    await saveToDb(req.body)
+    console.log('Saved successfully')
+    res.send('working boy')
+})
 
 server.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`);

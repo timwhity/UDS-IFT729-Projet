@@ -1,8 +1,10 @@
+const { loadFromDb, saveToDb } = require('./connectionDb.js')
+
 class serverCanvasManager {
     constructor(io, logger) {
         this.io = io;
         this.logger = logger;
-
+        this.count = 0
         this.socketId2Id = new Map(); // A chaque socket_id, on associe un id d'utilisateur
         this.connectedUsers = new Map(); // A chaque id d'utilisateur connecté, on associe {selecedObjectsIds: [], socket_id: 0, writePermission: false}
         this.objects = []; // On stocke les objets du tableau blanc
@@ -13,6 +15,7 @@ class serverCanvasManager {
 
     init() {
         this.io.on('connection', (socket) => {
+            this.count += 1;
             this.logger.debug('A user connected with socket : ' + socket.id);
 
             // On attend un message d'initialisation de l'utilisateur pour lui donner ses droits
@@ -32,42 +35,43 @@ class serverCanvasManager {
                 this.connectedUsers.set(userId, { selectedObjectsIds: [], socket_id: socket.id, writePermission: writePermission });
                 this.socketId2Id.set(socket.id, userId);
 
-				this.logger.debug('User ' + userId + ' initialized with writePermission ' + writePermission);
-				this.logger.debug('User ' + userId + ' initialized with objects ' + this.objects);
-				socket.emit('connection-ok', {objects: this.objects, users: Array.from(this.connectedUsers.keys()) });
-				socket.broadcast.emit('user connected', userId);
-			});
-		
-			socket.on('object modified', (object) => {
-				if (!this.checkRights(socket)) return;
-				this.logger.debug('object modified');
-				this.objects.splice(this.objects.findIndex(obj=> (obj.id==object.id)),1,object);
-				socket.broadcast.emit('object modified', object);
-			});
-			socket.on('object added', (object) => {
-				if (!this.checkRights(socket)) return;
-				this.logger.debug('object added');
-				this.objects.push(object);
-				socket.broadcast.emit('object added', object);
-			});
-			socket.on('object removed', (object) => {
-				if (!this.checkRights(socket)) return;
-				this.logger.debug('object removed');
-				this.objects.splice(this.objects.findIndex(obj=> (obj.id==object.id)),1);
-				socket.broadcast.emit('object removed', object);
-			});
-			socket.on('objects selected', (objectIds) => {
-				if (!this.checkRights(socket)) return;
-				this.logger.debug('objects selected');
-				socket.broadcast.emit('objects selected', { userId: this.socketId2Id.get(socket.id), objectIds: objectIds });
-			});
-			socket.on('objects deselected', () => {
-				if (!this.checkRights(socket)) return;
-				this.logger.debug('objects deselected');
-				socket.broadcast.emit('objects deselected', this.socketId2Id.get(socket.id));
-			});
+                this.logger.debug('User ' + userId + ' initialized with writePermission ' + writePermission);
+                this.logger.debug('User ' + userId + ' initialized with objects ' + this.objects);
+                socket.emit('connection-ok', { objects: this.objects, users: Array.from(this.connectedUsers.keys()) });
+                socket.broadcast.emit('user connected', userId);
+            });
 
-            socket.on('disconnect', () => {
+            socket.on('object modified', (object) => {
+                if (!this.checkRights(socket)) return;
+                this.logger.debug('object modified');
+                this.objects.splice(this.objects.findIndex(obj => (obj.id == object.id)), 1, object);
+                socket.broadcast.emit('object modified', object);
+            });
+            socket.on('object added', (object) => {
+                console.log(this.objects)
+                if (!this.checkRights(socket)) return;
+                this.logger.debug('object added');
+                this.objects.push(object);
+                socket.broadcast.emit('object added', object);
+            });
+            socket.on('object removed', (object) => {
+                if (!this.checkRights(socket)) return;
+                this.logger.debug('object removed');
+                this.objects.splice(this.objects.findIndex(obj => (obj.id == object.id)), 1);
+                socket.broadcast.emit('object removed', object);
+            });
+            socket.on('objects selected', (objectIds) => {
+                if (!this.checkRights(socket)) return;
+                this.logger.debug('objects selected');
+                socket.broadcast.emit('objects selected', { userId: this.socketId2Id.get(socket.id), objectIds: objectIds });
+            });
+            socket.on('objects deselected', () => {
+                if (!this.checkRights(socket)) return;
+                this.logger.debug('objects deselected');
+                socket.broadcast.emit('objects deselected', this.socketId2Id.get(socket.id));
+            });
+
+            socket.on('disconnect', async() => {
                 this.logger.debug('A user disconnected with socket : ' + socket.id);
                 const userId = this.socketId2Id.get(socket.id);
                 if (userId) {
@@ -75,6 +79,13 @@ class serverCanvasManager {
                     this.socketId2Id.delete(socket.id);
                     this.connectedUsers.delete(userId);
                     socket.broadcast.emit('user disconnected', userId);
+                }
+
+                this.count -= 1;
+
+                if (!this.count) {
+                    await saveToDb(this.objects);
+                    console.log("All user are disconnected")
                 }
             });
         });

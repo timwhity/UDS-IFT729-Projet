@@ -64,13 +64,12 @@ class CanvasManager {
         })
 
         fabric.util.enlivenObjects(obj.objects, function(enlivenedObjects) {
-            if(enlivenedObjects.length>0)
-            {
+            if (enlivenedObjects.length > 0) {
                 enlivenedObjects.forEach(object => {
                     this.logger.debug('handleObjectAdded : ' + object);
                     this.canvas.add(object);
                 });
-                
+
             }
         }.bind(this));
         this.canvas.renderAll();
@@ -212,7 +211,7 @@ class CanvasManager {
 
         // Mettre à jour la sélection
         this.selectedByOthersObjectIds.set(userId, newSelection);
-        this.canvas.renderAll();   
+        this.canvas.renderAll();
     }
     handleUserConnected(userId) { // Un autre utilisateur s'est connecté
         this.logger.debug('User connected : ' + userId);
@@ -227,13 +226,12 @@ class CanvasManager {
 
     //================================= BUTTONS ==================================
 
-    createText(){
-        var text = new fabric.Textbox('',  
-            { 
-                width: 450,
-                height:30,
-                id: this.genId()
-            });
+    createText() {
+        var text = new fabric.Textbox('', {
+            width: 450,
+            height: 30,
+            id: this.genId()
+        });
         return text;
     }
 
@@ -308,8 +306,12 @@ class CanvasManager {
         }
     }
 
+    saveCanvas() {
+        connection = "http://localhost:3000"
+    }
+
     //============================= CLIENT -> SERVER =============================
-    emitObjectModified(e) {     // Objet modifié par le client
+    emitObjectModified(e) { // Objet modifié par le client
         if (!this.checkRights()) return;
         if (e.target.type === 'activeSelection') {
             e.target.getObjects().forEach((object) => {
@@ -361,7 +363,7 @@ class CanvasManager {
         this.socket.emit('objects deselected');
         this.modificationAuthorizedObjectIds = new Set();
     }
-    emitSelectionUpdated(e) {     // Mise à jour de la sélection par le client
+    emitSelectionUpdated(e) { // Mise à jour de la sélection par le client
         if (!this.checkRights()) return;
         this.logger.debug('emitSelectionUpdated');
         this.socket.emit('objects selected', this.canvas.getActiveObjects().map(obj => obj.id));
