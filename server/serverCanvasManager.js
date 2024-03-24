@@ -14,7 +14,13 @@ class serverCanvasManager {
     }
 
     init() {
-        this.io.on('connection', (socket) => {
+        this.io.on('connection', async(socket) => {
+            if (!this.count) {
+                console.log("First connection")
+                let temp = JSON.parse(await loadFromDb())
+                this.objects = temp
+                console.log(this.objects)
+            }
             this.count += 1;
             this.logger.debug('A user connected with socket : ' + socket.id);
 
