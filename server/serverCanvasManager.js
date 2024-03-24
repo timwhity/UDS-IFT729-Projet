@@ -15,17 +15,11 @@ class serverCanvasManager {
 
     init() {
         this.io.on('connection', async(socket) => {
-            if (!this.count) {
-                console.log("First connection")
-                let temp = JSON.parse(await loadFromDb())
-                this.objects = temp
-                console.log(this.objects)
-            }
-            this.count += 1;
-            this.logger.debug('A user connected with socket : ' + socket.id);
+            // console.log("Count is ", count)
+
 
             // On attend un message d'initialisation de l'utilisateur pour lui donner ses droits
-            socket.on('connection-asked', (userId, writePermission) => {
+            socket.on('connection-asked', async(userId, writePermission) => {
                 this.logger.debug('User ' + userId + ' asked for initialization');
                 if (this.connectedUsers.has(userId)) {
                     this.logger.warn('User ' + userId + ' already initialized');
@@ -40,7 +34,16 @@ class serverCanvasManager {
                 // const state = (psw === this.psw) ? 'writer' : 'reader';
                 this.connectedUsers.set(userId, { selectedObjectsIds: [], socket_id: socket.id, writePermission: writePermission });
                 this.socketId2Id.set(socket.id, userId);
-
+                if (!this.count) {
+                    console.log("First connection")
+                    let temp = await loadFromDb()
+                    if (temp) {
+                        this.objects = JSON.parse(temp)
+                    }
+                    console.log(this.objects)
+                }
+                this.count += 1;
+                this.logger.debug('A user connected with socket : ' + socket.id);
                 this.logger.debug('User ' + userId + ' initialized with writePermission ' + writePermission);
                 this.logger.debug('User ' + userId + ' initialized with objects ' + this.objects);
                 socket.emit('connection-ok', { objects: this.objects, users: Array.from(this.connectedUsers.keys()) });
@@ -57,6 +60,7 @@ class serverCanvasManager {
                 console.log(this.objects)
                 if (!this.checkRights(socket)) return;
                 this.logger.debug('object added');
+                console.log(this.objects)
                 this.objects.push(object);
                 socket.broadcast.emit('object added', object);
             });
