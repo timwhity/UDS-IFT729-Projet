@@ -1,4 +1,5 @@
 const { loadFromDb, saveToDb } = require('./connectionDb.js')
+const { performance } = require('perf_hooks');
 
 class serverCanvasManager {
     constructor(io, logger) {
@@ -8,16 +9,11 @@ class serverCanvasManager {
         this.socketId2Id = new Map(); // A chaque socket_id, on associe un id d'utilisateur
         this.connectedUsers = new Map(); // A chaque id d'utilisateur connecté, on associe {selecedObjectsIds: [], socket_id: 0, writePermission: false}
         this.objects = []; // On stocke les objets du tableau blanc
-
-        this.psw = "admin"; // Mot de passe d'édition temporaire
         this.init();
     }
 
     init() {
         this.io.on('connection', async(socket) => {
-            // console.log("Count is ", count)
-
-
             // On attend un message d'initialisation de l'utilisateur pour lui donner ses droits
             socket.on('connection-asked', async(userId, writePermission) => {
                 this.logger.debug('User ' + userId + ' asked for initialization');
@@ -31,7 +27,6 @@ class serverCanvasManager {
                     return;
                 }
 
-                // const state = (psw === this.psw) ? 'writer' : 'reader';
                 this.connectedUsers.set(userId, { selectedObjectsIds: [], socket_id: socket.id, writePermission: writePermission });
                 this.socketId2Id.set(socket.id, userId);
                 if (!this.count) {
@@ -57,12 +52,15 @@ class serverCanvasManager {
                 socket.broadcast.emit('object modified', object);
             });
             socket.on('object added', (object) => {
+                let t0 = performance.now();
                 console.log(this.objects)
                 if (!this.checkRights(socket)) return;
                 this.logger.debug('object added');
                 console.log(this.objects)
                 this.objects.push(object);
                 socket.broadcast.emit('object added', object);
+                let t1 = performance.now();
+                console.log("Adding objet took " + (t1 - t0) + " milliseconds.on the server side.")
             });
             socket.on('object removed', (object) => {
                 if (!this.checkRights(socket)) return;
