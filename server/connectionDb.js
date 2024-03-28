@@ -1,6 +1,8 @@
+const { createClient } = require('redis')
+
 const Redis = require('redis')
-const redisClient = Redis.createClient();
-connectionParameters = {
+
+const connectionParameters = {
     password: 'KPkK9PrJWbniXWahsO09WqPpuAOL1p6e',
     socket: {
         host: 'redis-12266.c322.us-east-1-2.ec2.cloud.redislabs.com',
@@ -8,10 +10,24 @@ connectionParameters = {
     }
 }
 
+// const client = createClient({
+//     password: 'KPkK9PrJWbniXWahsO09WqPpuAOL1p6e',
+//     socket: {
+//         host: 'redis-12266.c322.us-east-1-2.ec2.cloud.redislabs.com',
+//         port: 12266
+//     }
+// });
+
+
+const redisClient = Redis.createClient(connectionParameters);
+
 redisClient.connect(connectionParameters).then(() => {
-    console.log('connection')
+    console.log('connection successful with redis')
 })
 
+redisClient.on("error", function(err) {
+    console.log("Error: " + err)
+})
 
 // Load canvas from JSON
 
@@ -21,7 +37,7 @@ async function loadFromDb() {
     let data = await redisClient.get('tableau');
 
     return data
-        // canvas.loadFromJSON(JSON.parse(data), canvas.renderAll.bind(canvas));
+
 }
 
 async function saveToDb(canvas) {
@@ -38,7 +54,6 @@ module.exports = { saveToDb, loadFromDb }
 /*
 
 DB Schema
-
 room:id : {
     name: room_name,
     canvas: canvas

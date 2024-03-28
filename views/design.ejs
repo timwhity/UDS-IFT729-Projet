@@ -18,7 +18,7 @@
 
     <style>
         main {
-            border: 3px solid green;
+            background-color: white;
         }
         
         #canvas,
@@ -421,29 +421,32 @@
                 }
             }
         </style>
-        <div class="edit--object flex">
-            <div class="editable background--edit flex">
-                <p>Background-color <br> or Color</p>
-                <input type="color" id="head" name="background" value="#a4a4a4" />
-            </div>
-
-            <div class=" editable background--edit flex">
-                <p>Border color</p>
-                <input type="color" id="head" name="border" value="#a4a4a4" />
-            </div>
-
-            <div class="text--edit">
-                <img class="bold" src="/icons/bold-white.svg" alt="">
-            </div>
-            <div class="text--edit active">
-                <img class="italic" src="/icons/italic-white.svg" alt="">
-            </div>
 
 
-        </div>
+
     </main>
 
     <div class="side">
+
+    </div>
+    <div class="edit--object flex">
+        <div class="editable background--edit flex">
+            <p>Background-color <br> or Color</p>
+            <input type="color" id="head" name="background" value="#a4a4a4" />
+        </div>
+
+        <div class=" editable background--edit flex">
+            <p>Border color</p>
+            <input type="color" id="head" name="border" value="#a4a4a4" />
+        </div>
+
+        <div class="text--edit">
+            <img class="bold" src="/icons/bold-white.svg" alt="">
+        </div>
+        <div class="text--edit active">
+            <img class="italic" src="/icons/italic-white.svg" alt="">
+        </div>
+
 
     </div>
     <canvas id="canvas"></canvas>
@@ -534,8 +537,8 @@
         canvasManager.del();
     });
 
-    document.getElementById('saveCanvas').addEventListener('click', saveCanvasStateToServer)
-    document.getElementById('loadCanvas').addEventListener('click', loadCanvasStateFromServer)
+    //document.getElementById('saveCanvas').addEventListener('click', saveCanvasStateToServer)
+    //document.getElementById('loadCanvas').addEventListener('click', loadCanvasStateFromServer)
 
 
     async function loadCanvasStateFromServer() {
