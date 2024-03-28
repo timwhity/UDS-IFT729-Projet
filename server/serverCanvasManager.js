@@ -37,7 +37,9 @@ class serverCanvasManager {
 
                 this.logger.debug('User ' + userId + ' initialized with writePermission ' + writePermission);
                 this.logger.debug('User ' + userId + ' initialized with objects ' + this.objects);
-                socket.emit('connection-ok', { objects: this.objects, users: Array.from(this.connectedUsers.keys()) });
+                this.logger.debug('User ' + userId + ' initialized with data ' + this.connectedUsers.values()["selectedObjectsIds"]);
+                
+                socket.emit('connection-ok', { objects: this.objects, users: Array.from(this.connectedUsers.keys()), objetSelectioner: Array.from(this.connectedUsers.values()) });
                 socket.broadcast.emit('user connected', userId);
             });
 
@@ -63,11 +65,13 @@ class serverCanvasManager {
             socket.on('objects selected', (objectIds) => {
                 if (!this.checkRights(socket)) return;
                 this.logger.debug('objects selected');
+                this.connectedUsers.get(socket.id)["selectedObjectsIds"] = objectIds
                 socket.broadcast.emit('objects selected', { userId: this.socketId2Id.get(socket.id), objectIds: objectIds });
             });
             socket.on('objects deselected', () => {
                 if (!this.checkRights(socket)) return;
                 this.logger.debug('objects deselected');
+                this.connectedUsers.get(socket.id)["selectedObjectsIds"] = []
                 socket.broadcast.emit('objects deselected', this.socketId2Id.get(socket.id));
             });
 

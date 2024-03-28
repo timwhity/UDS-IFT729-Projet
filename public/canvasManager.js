@@ -78,6 +78,15 @@ class CanvasManager {
         obj.users.forEach(userId => {
             this.othersColors.set(userId, COLORS[Math.floor(Math.random() * COLORS.length)]);
         });
+
+        this.logger.debug('selection : ' + obj.objetSelectioner);
+        
+
+        //Ajouter les sélection
+        new Map(obj.objetSelectioner).forEach(objet => {
+            this.logger.debug('objet : ' + objet);
+            this.handleSelectionModification([],objet.values()["selectedObjectsIds"],objet.key());
+        })
     }
 
 
