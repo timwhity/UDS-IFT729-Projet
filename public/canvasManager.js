@@ -79,14 +79,8 @@ class CanvasManager {
             this.othersColors.set(userId, COLORS[Math.floor(Math.random() * COLORS.length)]);
         });
 
-        this.logger.debug('selection : ' + obj.objetSelectioner);
-        
+        this.socket.emit("objet initialiser");
 
-        //Ajouter les sélection
-        new Map(obj.objetSelectioner).forEach(objet => {
-            this.logger.debug('objet : ' + objet);
-            this.handleSelectionModification([],objet.values()["selectedObjectsIds"],objet.key());
-        })
     }
 
 
