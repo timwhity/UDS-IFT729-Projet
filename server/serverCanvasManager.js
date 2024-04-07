@@ -61,6 +61,13 @@ class serverCanvasManager {
                 this.objects.splice(this.objects.findIndex(obj => (obj.id == object.id)), 1, object);
                 socket.broadcast.emit('object modified', object);
             });
+
+            socket.on("object moving", (object) => {
+                if (!this.checkRights(socket)) return;
+                this.logger.debug('object moved');
+                socket.broadcast.emit('object modified', object);
+            });
+
             socket.on('object added', (object) => {
                 let t0 = performance.now();
                 console.log(this.objects)

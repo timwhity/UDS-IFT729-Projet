@@ -31,6 +31,10 @@ class CanvasManager {
         this.socket.on('user disconnected', this.handleUserDisconnected.bind(this));
         // Client -> Server
         this.canvas.on('object:modified', this.emitObjectModified.bind(this));
+        this.canvas.on('object:moving', this.emitObjectMoving.bind(this));
+        this.canvas.on('object:rotating', this.emitObjectMoving.bind(this));
+        this.canvas.on('object:scaling', this.emitObjectMoving.bind(this));
+        this.canvas.on('object:skewing', this.emitObjectMoving.bind(this));
         this.canvas.on('object:added', this.emitObjectAdded.bind(this));
         this.canvas.on('object:removed', this.emitObjectRemoved.bind(this));
         this.canvas.on('selection:created', this.emitObjectsSelected.bind(this));
@@ -102,6 +106,8 @@ class CanvasManager {
             this.logger.warn('DESYNC : handleObjectModified : Object not found in canvas');
         }
     }
+
+
     handleObjectAdded(object) { // Objet ajouté par un autre utilisateur
         this.addedObjectIds.add(object.id);
         fabric.util.enlivenObjects([object], function(enlivenedObjects) {
@@ -332,6 +338,26 @@ class CanvasManager {
             }
             this.logger.debug('emitObjectModified : ' + e.target.id);
             this.socket.emit('object modified', e.target.toObject(['id']));
+        }
+    }
+    emitObjectMoving(e){
+        if (!this.checkRights()) return;
+        if (e.target.type === 'activeSelection') {
+            e.target.getObjects().forEach((object) => {
+                if (!this.modificationAuthorizedObjectIds.has(object.id)) {
+                    this.logger.warn('Modification unauthorized');
+                    return;
+                }
+                this.logger.debug('emitObjectMoving : ' + object.id);
+                this.socket.emit('object moving', object.toObject(['id', 'left', 'top']));
+            });
+        } else {
+            if (!this.modificationAuthorizedObjectIds.has(e.target.id)) {
+                this.logger.warn('Modification unauthorized');
+                return;
+            }
+            this.logger.debug('emitObjectMoving : ' + e.target.id);
+            this.socket.emit('object moving', e.target.toObject(['id']));
         }
     }
     emitObjectAdded(e) { // Objet ajouté par le client
