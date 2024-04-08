@@ -26,6 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const session = require('express-session');
+const { title } = require('process');
 app.use(session({
     secret: "ezlkfqhmkjjkgt'eqrE4Yg('zyre('yrgE5YEZeghgjnJ.uydlM:oUOmgg",
     resave: false,
@@ -36,31 +37,67 @@ app.get('/', (req, res) => {
     res.render('home');
 });
 
+let rooms = {};     // TEMP : à chaque identifiant de salle, on associe un mot de passe.
+
 // Quand on recoit une requete post sur '/' avec "id" et "mdp" 
-app.post('/', (req, res) => {
+app.post('/join', (req, res) => {
     const userId = req.body.userId;
+    const roomId = req.body.roomId;
     const mdp = req.body.mdp;
 
-    // Vérification mot de passe 
-    // TODO changer cela
-    const writePermission = (mdp === "admin")
+    if (!rooms[roomId]) {
+        res.render('error', { title: "Erreur", message: "La salle n'existe pas." });
+        return;
+    }
+    if (mdp && rooms[roomId] !== mdp) {
+        res.render('error', { title: "Mot de passe incorrect.", message: "Si vous souhaitez rejoindre la salle en lecture seule, laissez le champ vide." });
+        return;
+    }
+    const writePermission = (mdp && rooms[roomId] === mdp);
 
     req.session.userId = userId;
-    req.session.boardId = 1; // Id de l'unique tableau pour le moment
+    req.session.boardId = roomId;
     req.session.writePermission = writePermission;
 
     console.log(`Connection : ${userId} - ${writePermission}`);
     res.redirect('/draw');
 });
 
+app.post('/create', (req, res) => {
+    const userId = req.body.userId;
+    const roomId = req.body.roomId;
+    const mdp = req.body.mdp;
+
+    if (rooms[roomId]) {
+        res.render('error', { title: "Erreur", message: "La salle existe déjà." });
+        return;
+    }
+
+    rooms[roomId] = mdp;
+
+    req.session.userId = userId;
+    req.session.boardId = roomId;
+    req.session.writePermission = true;
+
+    console.log(`Creation : ${userId} - ${true}`);
+    res.redirect('/draw');
+});
+
+app.post('/disconnect', (req, res) => {
+    console.log(`disconnect : ${req.session.userId} - ${req.session.writePermission} - ${req.session.boardId}`);
+    req.session.destroy();
+    res.redirect('/');
+});
+
 app.get('/draw', (req, res) => {
     console.log(`draw : ${req.session.userId} - ${req.session.writePermission} - ${req.session.boardId}`);
-    if (!req.session.boardId || req.session.boardId != 1) {
+    if (!req.session.boardId) {
         res.render('error404');
     } else {
-        const { userId, writePermission } = req.session;
+        const { boardId, userId, writePermission } = req.session;
 
         res.render('design', {
+            boardId: boardId,
             userId: userId,
             writePermission: writePermission
         });
@@ -68,7 +105,6 @@ app.get('/draw', (req, res) => {
 })
 
 app.get('/', (req, res) => {
-    // Traitement sur l'url, sur les cookies, ... 
     res.render('\index')
 });
 
