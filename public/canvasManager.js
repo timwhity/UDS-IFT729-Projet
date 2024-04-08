@@ -5,12 +5,12 @@ const COLORS = ['rgba(200,0,0,1)', 'rgba(0,200,0,1)', 'rgba(0,0,200,1)', 'rgba(2
 ];
 
 class CanvasManager {
-    constructor(canvas, socket, logger, userId, writePermission) {
+    constructor(canvas, socket, logger, boardId, userId, writePermission) {
         this.canvas = canvas;
         this.socket = socket;
         this.logger = logger;
         this.writePermission = writePermission;
-
+        this.boardId = boardId;
         this.userId = userId;
         this.id_obj = 0; // Utilisé pour créer les id des objets
 
@@ -52,7 +52,7 @@ class CanvasManager {
 
     //============================== INITIALIZATION ==============================
     askConnection() {
-        this.socket.emit('connection-asked', this.userId, this.writePermission);
+        this.socket.emit('connection-asked', this.boardId, this.userId, this.writePermission);
     }
     connectionOk(obj) {
         this.logger.debug('ConnectionOk');

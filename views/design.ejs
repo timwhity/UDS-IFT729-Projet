@@ -14,7 +14,7 @@
     <script src="canvasManager.js"></script>
     <script src="logger.js"></script>
 
-    <title>Tableau blanc</title>
+    <title>Tableau blanc | <%= boardId %></title>
 
     <style>
         main {
@@ -252,7 +252,7 @@
                     <img class="arrow-right" src="/icons/Vector 8.svg" alt="not found" srcset="">
                 </div>
                 <div class="info">
-                    <h1>System Temps Reel</h1>
+                    <h1>Tableau blanc : <%=boardId%></h1>
                     <span>
                         <p>Dernier mis a jour, Fev 14</p>
                         <img src="/icons/Group.svg" alt="" srcset="">
@@ -452,6 +452,7 @@
     <canvas id="canvas"></canvas>
 </body>
 <script>
+    var boardId = '<%= boardId %>';
     var userId = '<%= userId %>';
     var writePermission = '<%= writePermission %>' === 'true';
 
@@ -509,7 +510,7 @@
 
     var socket = io();
     var logger = new Logger(logLevel, logMode);
-    var canvasManager = new CanvasManager(canvas, socket, logger, userId, writePermission);
+    var canvasManager = new CanvasManager(canvas, socket, logger, boardId, userId, writePermission);
 
     // Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
     document.getElementById('addRect').addEventListener('click', function() {
@@ -544,7 +545,7 @@
     async function loadCanvasStateFromServer() {
         console.log('loading canvas')
         try {
-            const response = await fetch('http://localhost:3000/getLoad'); // Replace the URL with the actual endpoint
+            const response = await fetch('http://localhost:3000/getLoad');
 
             const data = await response.json();
 

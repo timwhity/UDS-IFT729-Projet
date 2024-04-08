@@ -64,9 +64,14 @@ app.post('/join', (req, res) => {
 });
 
 app.post('/create', (req, res) => {
-    const userId = req.body.userId;
-    const roomId = req.body.roomId;
-    const mdp = req.body.mdp;
+    const userId = req.body.userIdCreate;
+    const roomId = req.body.roomIdCreate;
+    const mdp = req.body.mdpCreate;
+
+    if (!userId || !roomId) {
+        res.render('error', { title: "Erreur", message: "Veuillez renseigner tous les champs." });
+        return;
+    }
 
     if (rooms[roomId]) {
         res.render('error', { title: "Erreur", message: "La salle existe déjà." });
