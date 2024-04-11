@@ -1,5 +1,3 @@
-const { createClient } = require('redis')
-
 const Redis = require('redis')
 
 const connectionParameters = {
@@ -9,15 +7,6 @@ const connectionParameters = {
         port: 12266
     }
 }
-
-// const client = createClient({
-//     password: 'KPkK9PrJWbniXWahsO09WqPpuAOL1p6e',
-//     socket: {
-//         host: 'redis-12266.c322.us-east-1-2.ec2.cloud.redislabs.com',
-//         port: 12266
-//     }
-// });
-
 
 const redisClient = Redis.createClient(connectionParameters);
 
@@ -29,52 +18,25 @@ redisClient.on("error", function(err) {
     console.log("Error: " + err)
 })
 
-// Load canvas from JSON
-
-async function createRoomDb() {}
-
-async function loadFromDb() {
-    let data = await redisClient.get('tableau');
-
+async function loadFromDb(boardId) {
+    let data = await redisClient.get('tableau-' + boardId);
     return data
-
 }
 
-async function saveToDb(canvas) {
-
+async function saveToDb(canvas, boardId) {
     // newElements = elements.map(element => element.toObject());
     var jsonData = JSON.stringify(canvas);
-    console.log(jsonData)
-
-    await redisClient.set('tableau', jsonData)
+    // console.log(jsonData)
+    await redisClient.set('tableau-' + boardId, jsonData)
 }
 
-module.exports = { saveToDb, loadFromDb }
-
-/*
-
-DB Schema
-room:id : {
-    name: room_name,
-    canvas: canvas
-};
-
-
-create room :{
-    room_name,
-    room_id,
-    username,
-    room_password
+async function createBoard(boardId, password) {
+    await redisClient.set(boardId, password)
 }
 
-log into room {
-    username,
-    room_password,
-    room_id
+async function getBoard(boardId) {
+    let password = await redisClient.get(boardId)
+    return password
 }
 
-
-messaging is not persistent;
-
-
-*/
+module.exports = { saveToDb, loadFromDb, createBoard, getBoard }

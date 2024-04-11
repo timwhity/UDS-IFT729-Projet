@@ -14,7 +14,7 @@ const ServerCanvasManager = require('./server/serverCanvasManager.js');
 const serverCanvas = new ServerCanvasManager(io, logger);
 
 // Connection a la base de données
-const { loadFromDb, saveToDb } = require('./server/connectionDb.js')
+const { loadFromDb, saveToDb, createBoard, getBoard } = require('./server/connectionDb.js')
 
 
 app.set('view engine', 'ejs');
@@ -37,23 +37,22 @@ app.get('/', (req, res) => {
     res.render('home');
 });
 
-let rooms = {};     // TEMP : à chaque identifiant de salle, on associe un mot de passe.
-
 // Quand on recoit une requete post sur '/' avec "id" et "mdp" 
-app.post('/join', (req, res) => {
+app.post('/join', async (req, res) => {
     const userId = req.body.userId;
     const roomId = req.body.roomId;
     const mdp = req.body.mdp;
 
-    if (!rooms[roomId]) {
+    const password = await getBoard(roomId);
+    if (!password) {
         res.render('error', { title: "Erreur", message: "La salle n'existe pas." });
         return;
     }
-    if (mdp && rooms[roomId] !== mdp) {
+    if (mdp && password !== mdp) {
         res.render('error', { title: "Mot de passe incorrect.", message: "Si vous souhaitez rejoindre la salle en lecture seule, laissez le champ vide." });
         return;
     }
-    const writePermission = (mdp && rooms[roomId] === mdp);
+    const writePermission = (mdp && password === mdp);
 
     req.session.userId = userId;
     req.session.boardId = roomId;
@@ -63,7 +62,7 @@ app.post('/join', (req, res) => {
     res.redirect('/draw');
 });
 
-app.post('/create', (req, res) => {
+app.post('/create', async (req, res) => {
     const userId = req.body.userIdCreate;
     const roomId = req.body.roomIdCreate;
     const mdp = req.body.mdpCreate;
@@ -72,13 +71,11 @@ app.post('/create', (req, res) => {
         res.render('error', { title: "Erreur", message: "Veuillez renseigner tous les champs." });
         return;
     }
-
-    if (rooms[roomId]) {
+    if (await getBoard(roomId)) {
         res.render('error', { title: "Erreur", message: "La salle existe déjà." });
         return;
     }
-
-    rooms[roomId] = mdp;
+    await createBoard(roomId, mdp);
 
     req.session.userId = userId;
     req.session.boardId = roomId;
@@ -114,20 +111,27 @@ app.get('/', (req, res) => {
 });
 
 
-app.get('/getLoad', async(req, res) => {
-    const data = await loadFromDb()
+app.get('/load/:boardId', async(req, res) => { 
+    const boardId = req.params.boardId
+    if (req.session.boardId !== boardId) {
+        res.status(403).send('You are not allowed to access this board')
+    }
+    if (!boardId) {
+        res.status(400).send('boardId is required')
+    }
+    const data = await loadFromDb(boardId)
     res.json(data)
 })
 
 
-app.get('/load', (req, res) => res.render('load'))
-
-
-app.post('/database', async(req, res) => {
-    console.log(req.body)
-    await saveToDb(req.body)
+app.post('/save/:boardId', async(req, res) => {
+    const boardId = req.params.boardId
+    if (req.session.boardId !== boardId || !req.session.writePermission) {
+        res.status(403).send('You are not allowed to access this board')
+    }
+    await saveToDb(req.body, boardId)
     console.log('Saved successfully')
-    res.send('working boy')
+    res.send('Saved successfully')
 })
 
 server.listen(port, () => {

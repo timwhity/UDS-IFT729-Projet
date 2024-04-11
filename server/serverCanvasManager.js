@@ -1,4 +1,3 @@
-const { get } = require('http');
 const { loadFromDb, saveToDb } = require('./connectionDb.js')
 const { performance } = require('perf_hooks');
 
@@ -6,10 +5,10 @@ class serverCanvasManager {
     constructor(io, logger) {
         this.io = io;
         this.logger = logger;
-        this.count = 0
+        this.count = {};
         this.socketId2Id = new Map(); // A chaque socket_id, on associe un id d'utilisateur
         this.connectedUsers = new Map(); // A chaque id d'utilisateur connecté, on associe {selectedObjectsIds: [], boardId: "", socket_id: 0, writePermission: false}
-        this.objects = {}; // On stocke les objets pour chaque tableau blanc
+        this.boardsObjetcs = {}; // On stocke les objets pour chaque tableau blanc
         this.init();
     }
 
@@ -31,16 +30,23 @@ class serverCanvasManager {
                 socket.join(boardId);
                 this.connectedUsers.set(userId, { selectedObjectsIds: [], boardId: boardId, socket_id: socket.id, writePermission: writePermission });
                 this.socketId2Id.set(socket.id, userId);
-                if (!this.count) {
+                if (!this.count[boardId]) {
                     console.log("First connection")
-                    let temp = await loadFromDb()
+                    let temp = await loadFromDb(boardId)
                     if (temp) {
-                        this.objects[boardId] = JSON.parse(temp)
+                        this.boardsObjetcs[boardId] = JSON.parse(temp)
+                    } else {
+                        this.boardsObjetcs[boardId] = []
+                    }
+                } else {
+                    if (!this.boardsObjetcs[boardId]) {
+                        socket.emit('error', 'The board does not exist');
+                        return;
                     }
                 }
-                this.count += 1;
+                this.count[boardId] += 1;
                 this.logger.debug('A user connected with socket : ' + socket.id + ' and id : ' + userId + ' on board ' + boardId + ' with writePermission ' + writePermission);
-                socket.emit('connection-ok', { objects: this.objects[boardId], users: Array.from(this.connectedUsers.keys()) });
+                socket.emit('connection-ok', { objects: this.boardsObjetcs[boardId], users: Array.from(this.connectedUsers.keys()) });
                 socket.to(boardId).emit('user connected', userId);
             });
 
@@ -49,7 +55,7 @@ class serverCanvasManager {
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
                 this.logger.debug('object modified on board ' + boardId);
-                this.objects[boardId].splice(this.objects[boardId].findIndex(obj => (obj.id == object.id)), 1, object);
+                this.boardsObjetcs[boardId].splice(this.boardsObjetcs[boardId].findIndex(obj => (obj.id == object.id)), 1, object);
                 socket.to(boardId).emit('object modified', object);
             });
             socket.on('object added', (object) => {
@@ -58,7 +64,7 @@ class serverCanvasManager {
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
                 this.logger.debug('object added on board ' + boardId);
-                this.objects[boardId].push(object);
+                this.boardsObjetcs[boardId].push(object);
                 socket.to(boardId).emit('object added', object);
                 let t1 = performance.now();
                 console.log("Adding objet took " + (t1 - t0) + " milliseconds.on the server side.")
@@ -68,7 +74,7 @@ class serverCanvasManager {
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
                 this.logger.debug('object removed on board ' + boardId);
-                this.objects[boardId].splice(this.objects[boardId].findIndex(obj => (obj.id == object.id)), 1);
+                this.boardsObjetcs[boardId].splice(this.boardsObjetcs[boardId].findIndex(obj => (obj.id == object.id)), 1);
                 socket.to(boardId).emit('object removed', object);
             });
             socket.on('objects selected', (objectIds) => {
@@ -97,10 +103,10 @@ class serverCanvasManager {
                     socket.to(boardId).emit('user disconnected', userId);
                 }
 
-                this.count -= 1;
+                this.count[boardId] -= 1;
 
-                if (!this.count) {
-                    await saveToDb(this.objects[boardId])
+                if (!this.count[boardId]) {
+                    await saveToDb(this.boardsObjetcs[boardId], boardId)
                     console.log("All user are disconnected")
                 }
             });
