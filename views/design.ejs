@@ -336,7 +336,7 @@
                 <img src="/drawing_icons/image_icon.svg" alt="" class="drawing--icon">
 
             </div>
-            <div id="del" class="active">
+            <div id="del" class="del">
 
                 <img src="/drawing_icons/erase_icon.svg" alt="" class="drawing--icon">
             </div>
@@ -481,7 +481,7 @@
                 icon.classList.remove("active");
 
         });
-
+        e.currentTarget.
         e.currentTarget.classList.toggle('active')
         if(e.currentTarget.classList.contains("hand-icon")){
             canvas.setAction("");
@@ -513,6 +513,13 @@
     var socket = io();
     var logger = new Logger(logLevel, logMode);
     var canvasManager = new CanvasManager(canvas, socket, logger, userId, writePermission);
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Delete') {
+            canvasManager.setAction(null);
+            canvasManager.del();
+        }
+    });
 
     // Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
     document.getElementById('addRect').addEventListener('click', function() {
