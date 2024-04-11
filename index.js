@@ -134,6 +134,10 @@ app.post('/save/:boardId', async(req, res) => {
     res.send('Saved successfully')
 })
 
+process.on('uncaughtException', function (err) {
+    console.log(err);
+}); 
+
 server.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`);
 });

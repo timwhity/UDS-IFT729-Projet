@@ -48,7 +48,15 @@ class serverCanvasManager {
                 this.logger.debug('A user connected with socket : ' + socket.id + ' and id : ' + userId + ' on board ' + boardId + ' with writePermission ' + writePermission);
                 socket.emit('connection-ok', { objects: this.boardsObjetcs[boardId], users: Array.from(this.connectedUsers.keys()) });
                 socket.to(boardId).emit('user connected', userId);
+
             });
+
+            socket.on("objet initialiser",()=>{
+                this.connectedUsers.forEach((value,key, map) => {
+                    this.logger.debug('User ' + key + ' selection: ' + value["selectedObjectsIds"]);
+                    socket.emit('objects selected',{ userId: key, objectIds: value["selectedObjectsIds"] })
+                })
+            })
 
             socket.on('object modified', (object) => {
                 if (!this.checkRights(socket)) return;
@@ -58,6 +66,13 @@ class serverCanvasManager {
                 this.boardsObjetcs[boardId].splice(this.boardsObjetcs[boardId].findIndex(obj => (obj.id == object.id)), 1, object);
                 socket.to(boardId).emit('object modified', object);
             });
+
+            socket.on("object moving", (object) => {
+                if (!this.checkRights(socket)) return;
+                this.logger.debug('object moved');
+                socket.broadcast.emit('object modified', object);
+            });
+
             socket.on('object added', (object) => {
                 let t0 = performance.now();
                 if (!this.checkRights(socket)) return;
@@ -82,6 +97,7 @@ class serverCanvasManager {
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
                 this.logger.debug('objects selected on board ' + boardId);
+                this.connectedUsers.get(this.socketId2Id.get(socket.id))["selectedObjectsIds"] = objectIds;
                 socket.to(boardId).emit('objects selected', { userId: this.socketId2Id.get(socket.id), objectIds: objectIds });
             });
             socket.on('objects deselected', () => {
@@ -89,6 +105,7 @@ class serverCanvasManager {
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
                 this.logger.debug('objects deselected on board ' + boardId);
+                this.connectedUsers.get(this.socketId2Id.get(socket.id))["selectedObjectsIds"] = [];
                 socket.to(boardId).emit('objects deselected', this.socketId2Id.get(socket.id));
             });
 
