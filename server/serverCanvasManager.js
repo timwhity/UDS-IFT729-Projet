@@ -41,9 +41,19 @@ class serverCanvasManager {
                 this.logger.debug('A user connected with socket : ' + socket.id);
                 this.logger.debug('User ' + userId + ' initialized with writePermission ' + writePermission);
                 this.logger.debug('User ' + userId + ' initialized with objects ' + this.objects);
-                socket.emit('connection-ok', { objects: this.objects, users: Array.from(this.connectedUsers.keys()) });
+                
+                socket.emit('connection-ok', { objects: this.objects, users: Array.from(this.connectedUsers.keys())});
+
+                
                 socket.broadcast.emit('user connected', userId);
             });
+
+            socket.on("objet initialiser",()=>{
+                this.connectedUsers.forEach((value,key, map) => {
+                    this.logger.debug('User ' + key + ' selection: ' + value["selectedObjectsIds"]);
+                    socket.emit('objects selected',{ userId: key, objectIds: value["selectedObjectsIds"] })
+                })
+            })
 
             socket.on('object modified', (object) => {
                 if (!this.checkRights(socket)) return;
@@ -51,6 +61,13 @@ class serverCanvasManager {
                 this.objects.splice(this.objects.findIndex(obj => (obj.id == object.id)), 1, object);
                 socket.broadcast.emit('object modified', object);
             });
+
+            socket.on("object moving", (object) => {
+                if (!this.checkRights(socket)) return;
+                this.logger.debug('object moved');
+                socket.broadcast.emit('object modified', object);
+            });
+
             socket.on('object added', (object) => {
                 let t0 = performance.now();
                 console.log(this.objects)
@@ -71,11 +88,13 @@ class serverCanvasManager {
             socket.on('objects selected', (objectIds) => {
                 if (!this.checkRights(socket)) return;
                 this.logger.debug('objects selected');
+                this.connectedUsers.get(this.socketId2Id.get(socket.id))["selectedObjectsIds"] = objectIds;
                 socket.broadcast.emit('objects selected', { userId: this.socketId2Id.get(socket.id), objectIds: objectIds });
             });
             socket.on('objects deselected', () => {
                 if (!this.checkRights(socket)) return;
                 this.logger.debug('objects deselected');
+                this.connectedUsers.get(this.socketId2Id.get(socket.id))["selectedObjectsIds"] = [];
                 socket.broadcast.emit('objects deselected', this.socketId2Id.get(socket.id));
             });
 
