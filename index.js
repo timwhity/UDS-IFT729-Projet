@@ -89,6 +89,10 @@ app.post('/database', async(req, res) => {
     res.send('working boy')
 })
 
+process.on('uncaughtException', function (err) {
+    console.log(err);
+}); 
+
 server.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`);
 });
