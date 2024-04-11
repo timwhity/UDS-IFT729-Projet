@@ -9,6 +9,8 @@ class CanvasManager {
         this.canvas = canvas;
         this.socket = socket;
         this.logger = logger;
+        this.action = "";
+        this.clickPoint = null;
         this.writePermission = writePermission;
 
         this.userId = userId;
@@ -40,6 +42,27 @@ class CanvasManager {
         // Rerender
         this.canvas.on('before:render', function() {
             this.updateSelectionRender();
+        }.bind(this));
+
+        this.canvas.on('mouse:down', function() {
+            console.log("========== down mouse ========== ", this.action);
+            if(this.action=='addPencil'){
+                this.addPencil();
+            }
+        }.bind(this));
+        this.canvas.on('mouse:up', function(event) {
+            console.log("========== up mouse ==========", event);
+            this.clickPoint = event.pointer;
+            if(this.action=='addRect'){
+                this.createRec();
+            }else if(this.action == 'addCircle'){
+                this.createCircle();
+            }else if(this.action=='addLine'){
+                this.addLine();
+            }if(this.action=='addPencil'){
+                //this.canvas.isDrawingMode= false;
+            }
+            
         }.bind(this));
 
         // Initialisation 
@@ -242,10 +265,34 @@ class CanvasManager {
             return;
         }
 
+        if(shapeType=="Circle"){
+            return new fabric[shapeType]({
+                left: this.clickPoint.x,
+            top: this.clickPoint.y,
+                // width: 20,
+                // height: 20,
+                radius: 50, 
+                fill: '', 
+                stroke: 'black', 
+                strokeWidth: 3 ,
+                    id: this.genId()
+            })
+            
+            
+        }else if(shapeType=="Line"){
+            return new fabric[shapeType]([this.clickPoint.x, this.clickPoint.y, this.clickPoint.x+100, this.clickPoint.y],{
+                stroke: 'black', 
+                strokeWidth: 3 ,
+                id: this.genId()
+            })
+        }else if(shapeType == "PencilBrush"){
+            return new fabric['PencilBrush'](this.canvas);
+        }
+
         // Create the shape dynamically using bracket notation
         var shape = new fabric[shapeType]({
-            left: 100,
-            top: 100,
+            left: this.clickPoint.x,
+            top: this.clickPoint.y,
             fill: 'red',
             width: 20,
             height: 20,
@@ -253,6 +300,10 @@ class CanvasManager {
         });
 
         return shape;
+    }
+
+    setAction(action) {
+        this.action = action;
     }
 
     createRec() {
@@ -289,10 +340,20 @@ class CanvasManager {
 
     addLine() {
         if (!this.writePermission) return;
+        const line = this.createShape('Line')
+        canvas.add(line);
+        canvas.setActiveObject(line);
     }
 
     addPencil() {
         if (!this.writePermission) return;
+        console.log("============ add pencil =============");
+        const pencil = this.createShape('PencilBrush')
+        this.canvas.isDrawingMode= true;
+        this.canvas.freeDrawingBrush = pencil;
+        this.canvas.freeDrawingBrush.color = "black";
+       // canvas.add(line);
+        //canvas.setActiveObject(line);
     }
 
     addEraser() {
@@ -353,6 +414,8 @@ class CanvasManager {
     }
     emitObjectsSelected(e) { // Objets sélectionnés par le client
         if (!this.checkRights()) return;
+        console.log("================ emitObjectsSelected ============ ");
+        this.action=null;
         this.logger.debug('emitObjectsSelected : ' + this.canvas.getActiveObjects().map(obj => obj.id).join(', '));
         this.socket.emit('objects selected', this.canvas.getActiveObjects().map(obj => obj.id));
         this.modificationAuthorizedObjectIds = new Set(this.canvas.getActiveObjects().map(obj => obj.id));

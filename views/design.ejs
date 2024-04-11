@@ -288,15 +288,15 @@
     <main>
 
         <div class="icons">
-            <div class="active  is--lock">
+            <div class="active  is--lock" id="lock">
 
                 <img src="/drawing_icons/lock_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div class="hand-icon">
+            <div class="hand-icon" id="getHand">
 
                 <img src="/drawing_icons/hand_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div>
+            <div id="mouse">
 
                 <img src="/drawing_icons/mouse_icon.svg" alt="" class="drawing--icon">
             </div>
@@ -316,11 +316,11 @@
 
                 <img src="/drawing_icons/arrow_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div>
+            <div id="addLine">
 
                 <img src="/drawing_icons/line_icon.svg" alt="" class="drawing--icon">
             </div>
-            <div>
+            <div id="addDraw">
 
                 <img src="/drawing_icons/draw_icon.svg" alt="" class="drawing--icon">
             </div>
@@ -454,7 +454,7 @@
 <script>
     var userId = '<%= userId %>';
     var writePermission = '<%= writePermission %>' === 'true';
-
+    var action = "";
     const icons = Array.from(document.querySelectorAll('.icons div'))
     console.log(icons)
         //icons.addEventListener('')
@@ -483,6 +483,9 @@
         });
 
         e.currentTarget.classList.toggle('active')
+        if(e.currentTarget.classList.contains("hand-icon")){
+            canvas.setAction("");
+        }
         console.log(e.target)
 
     }
@@ -514,26 +517,63 @@
     // Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
     document.getElementById('addRect').addEventListener('click', function() {
         console.log('creating rectangle')
-        canvasManager.createRec();
+        action = 'addRect';
+        canvasManager.setAction(action);
+       // canvasManager.createRec();
+    });
+
+    document.getElementById('getHand').addEventListener('click', function() {
+        canvasManager.setAction(null);
+       // canvasManager.createRec();
+    });
+
+    document.getElementById('lock').addEventListener('click', function() {
+        canvasManager.setAction(null);
+       // canvasManager.createRec();
+    });
+
+    document.getElementById('mouse').addEventListener('click', function() {
+        canvasManager.setAction(null);
+       // canvasManager.createRec();
     });
 
     document.getElementById('addCircle').addEventListener('click', function() {
         console.log('creating rectangle')
-        canvasManager.createCircle();
+        action='addCircle';
+        canvasManager.setAction(action);
+       // canvasManager.createCircle();
+    });
+
+    document.getElementById('addLine').addEventListener('click', function() {
+        action='addLine';
+        canvasManager.setAction(action);
+       // canvasManager.createCircle();
     });
 
     document.getElementById('addTriangle').addEventListener('click', function() {
         console.log('creating rectangle')
-        canvasManager.createTriangle();
+        action='addTriangle';
+        canvasManager.setAction(action);
+        //canvasManager.createTriangle();
     });
 
     document.getElementById('addText').addEventListener('click', function() {
         console.log('creating Text')
-        canvasManager.addText();
+        action='addText';
+        canvasManager.setAction(action);
+       // canvasManager.addText();
+    });
+
+    document.getElementById('addDraw').addEventListener('click', function() {
+        console.log('creating draw');
+        action='addPencil';
+        canvasManager.setAction(action);
+       // canvasManager.addText();
     });
 
     // Fait en sorte que le bouton "delRect" supprime le rectangle sélectionné
     document.getElementById('del').addEventListener('click', function() {
+        canvasManager.setAction(null);
         canvasManager.del();
     });
 
