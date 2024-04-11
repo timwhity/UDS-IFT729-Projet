@@ -14,7 +14,7 @@
     <script src="canvasManager.js"></script>
     <script src="logger.js"></script>
 
-    <title>Tableau blanc</title>
+    <title>Tableau blanc | <%= boardId %></title>
 
     <style>
         main {
@@ -252,7 +252,7 @@
                     <img class="arrow-right" src="/icons/Vector 8.svg" alt="not found" srcset="">
                 </div>
                 <div class="info">
-                    <h1>System Temps Reel</h1>
+                    <h1>Tableau blanc : <%=boardId%></h1>
                     <span>
                         <p>Dernier mis a jour, Fev 14</p>
                         <img src="/icons/Group.svg" alt="" srcset="">
@@ -452,6 +452,7 @@
     <canvas id="canvas"></canvas>
 </body>
 <script>
+    var boardId = '<%= boardId %>';
     var userId = '<%= userId %>';
     var writePermission = '<%= writePermission %>' === 'true';
     var action = "";
@@ -512,7 +513,7 @@
 
     var socket = io();
     var logger = new Logger(logLevel, logMode);
-    var canvasManager = new CanvasManager(canvas, socket, logger, userId, writePermission);
+    var canvasManager = new CanvasManager(canvas, socket, logger, boardId, userId, writePermission);
 
     // Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
     document.getElementById('addRect').addEventListener('click', function() {
@@ -581,66 +582,66 @@
     //document.getElementById('loadCanvas').addEventListener('click', loadCanvasStateFromServer)
 
 
-    async function loadCanvasStateFromServer() {
-        console.log('loading canvas')
-        try {
-            const response = await fetch('http://localhost:3000/getLoad'); // Replace the URL with the actual endpoint
+    // async function loadCanvasStateFromServer() {
+    //     console.log('loading canvas')
+    //     try {
+    //         const response = await fetch('http://localhost:3000/getLoad');
 
-            const data = await response.json();
+    //         const data = await response.json();
 
-            const canvasData = JSON.parse(data)
-            console.log(canvasData)
-            const temp = fabric.util.enlivenObjects(JSON.parse(data).objects, function(objects) {
+    //         const canvasData = JSON.parse(data)
+    //         console.log(canvasData)
+    //         const temp = fabric.util.enlivenObjects(JSON.parse(data).objects, function(objects) {
 
-                objects.forEach(function(obj) {
-                    canvas.add(obj);
-                });
-                console.log("Finished loading")
+    //             objects.forEach(function(obj) {
+    //                 canvas.add(obj);
+    //             });
+    //             console.log("Finished loading")
 
-                canvas.renderAll();
-            });
+    //             canvas.renderAll();
+    //         });
 
-            //  canvas.loadFromJSON(canvasData)
+    //         //  canvas.loadFromJSON(canvasData)
 
-            //return data.name;
-            console.log("baby is working" + data)
-        } catch (error) {
-            console.error(error);
-            return null;
-        }
-    }
+    //         //return data.name;
+    //         console.log("baby is working" + data)
+    //     } catch (error) {
+    //         console.error(error);
+    //         return null;
+    //     }
+    // }
 
 
-    function saveCanvasStateToServer() {
-        var canvasState = JSON.stringify(canvas.toJSON());
-        console.log(canvasState);
-        // Get the canvas state as JSON
-        // var canvasState = JSON.stringify(canvas.toJSON());
-        console.log('Beloved function saveCanvasStateToServer')
-            // Make an HTTP POST request to your server
-        fetch('http://localhost:3000/database', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: canvasState
+    // function saveCanvasStateToServer() {
+    //     var canvasState = JSON.stringify(canvas.toJSON());
+    //     console.log(canvasState);
+    //     // Get the canvas state as JSON
+    //     // var canvasState = JSON.stringify(canvas.toJSON());
+    //     console.log('Beloved function saveCanvasStateToServer')
+    //         // Make an HTTP POST request to your server
+    //     fetch('http://localhost:3000/database', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: canvasState
 
-            })
-            .then(response => {
-                console.log(response)
-                if (response.ok) {
-                    console.log('Canvas state saved successfully.');
-                } else {
-                    console.error('Failed to save canvas state:', response.statusText);
-                }
-            })
-            .then(data => {
-                console.log("data is ", data)
-            })
-            .catch(error => {
-                console.error('Error saving canvas state:', error);
-            });
-    }
+    //         })
+    //         .then(response => {
+    //             console.log(response)
+    //             if (response.ok) {
+    //                 console.log('Canvas state saved successfully.');
+    //             } else {
+    //                 console.error('Failed to save canvas state:', response.statusText);
+    //             }
+    //         })
+    //         .then(data => {
+    //             console.log("data is ", data)
+    //         })
+    //         .catch(error => {
+    //             console.error('Error saving canvas state:', error);
+    //         });
+    // }
 </script>
 
 </html>
