@@ -112,9 +112,9 @@ class CanvasManager {
 
 
     //============================= SERVER -> CLIENT =============================
-    handleError(message) {
-        this.logger.error("Error send by server : " + message);
-        alert(message);
+    handleError(title, message) {
+        this.logger.error("ERROR send by server : " + title + " - " + message);
+        window.location.href = "/error?title=" + title + "&message=" + message;
     }
 
     handleObjectModified(object) { // Objet modifié par un autre utilisateur

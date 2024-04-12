@@ -19,11 +19,11 @@ class serverCanvasManager {
                 this.logger.debug('User ' + userId + ' asked for initialization for board ' + boardId + ' with writePermission ' + writePermission);
                 if (this.connectedUsers.has(userId)) {
                     this.logger.warn('User ' + userId + ' already initialized');
-                    socket.emit('error', 'Your id is already used');
+                    socket.emit('error', 'Erreur : votre identifiant est déjà utilisé' ,'Merci de vous reconnecter en utilisant un autre !');
                     return;
                 } else if (this.socketId2Id.has(socket.id)) {
                     this.logger.warn('User ' + userId + ' already initialized');
-                    socket.emit('error', 'You are already initialized');
+                    socket.emit('error', 'Erreur : vous êtes déjà sensé être connecté', "Merci de report cette erreur à l'administrateur");
                     return;
                 }
                 
@@ -40,7 +40,7 @@ class serverCanvasManager {
                     }
                 } else {
                     if (!this.boardsObjetcs[boardId]) {
-                        socket.emit('error', 'The board does not exist');
+                        socket.emit('error', 'Erreur : le tableau blanc n\'existe pas', 'Merci de vous reconnecter en utilisant un autre !');
                         return;
                     }
                 }
@@ -134,15 +134,15 @@ class serverCanvasManager {
         const userId = this.socketId2Id.get(socket.id);
         if (!userId) {
             this.logger.warn('User with socket ' + socket.id + ' is not initialized');
-            socket.emit('error', 'You are not initialized');
+            socket.emit('error', 'Erreur : vous n\'êtes pas initialisé', 'Merci de vous reconnecter !');
             return;
         } else if (!this.connectedUsers.has(userId)) {
             this.logger.warn('User ' + userId + ' is not initialized (This should not happen)');
-            socket.emit('error', 'You are not initialized (This should not happen)');
+            socket.emit('error', 'Erreur : vous n\'êtes pas initialisé', 'Merci de vous reconnecter ! Cette erreur ne devrait pas arriver, merci de contacter l\'administrateur');
             return;
         } else if (!this.connectedUsers.get(userId).boardId) {
             this.logger.warn('User ' + userId + ' does not have a boardId');
-            socket.emit('error', 'You do not have a boardId');
+            socket.emit('error', 'Erreur : vous n\'avez pas de boardId', 'Merci de vous reconnecter !');
             return;
         }
         return this.connectedUsers.get(userId).boardId;
@@ -152,19 +152,19 @@ class serverCanvasManager {
         const userId = this.socketId2Id.get(socket.id);
         if (!userId) {
             this.logger.warn('User with socket ' + socket.id + ' is not initialized');
-            socket.emit('error', 'You are not initialized');
+            socket.emit('error', 'Erreur : vous n\'êtes pas initialisé', 'Merci de vous reconnecter !');
             return false;
         } else if (!this.connectedUsers.has(userId)) {
             this.logger.warn('User ' + userId + ' is not initialized (This should not happen)');
-            socket.emit('error', 'You are not initialized (This should not happen)');
+            socket.emit('error', 'Erreur : vous n\'êtes pas initialisé', 'Merci de vous reconnecter ! Cette erreur ne devrait pas arriver, merci de contacter l\'administrateur');
             return false;
         } else if (!this.connectedUsers.get(userId).socket_id === socket.id) {
             this.logger.warn('User ' + userId + ' is not the right user');
-            socket.emit('error', 'You are not the right user');
+            socket.emit('error', 'Erreur : vous n\'êtes pas le bon utilisateur', 'Merci de vous reconnecter !');
             return false;
         } else if (!this.connectedUsers.get(userId).writePermission) {
             this.logger.warn('User ' + userId + ' does not have the rights to do this action');
-            socket.emit('error', 'You do not have the rights to do this action');
+            socket.emit('error', 'Erreur : vous n\'avez pas les droits pour effectuer cette action', 'Merci de vous reconnecter !');
             return false;
         }
         return true;

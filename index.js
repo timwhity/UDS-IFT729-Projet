@@ -91,6 +91,12 @@ app.post('/disconnect', (req, res) => {
     res.redirect('/');
 });
 
+app.get('/disconnect', (req, res) => {
+    console.log(`disconnect : ${req.session.userId} - ${req.session.writePermission} - ${req.session.boardId}`);
+    req.session.destroy();
+    res.redirect('/');
+});
+
 app.get('/draw', (req, res) => {
     console.log(`draw : ${req.session.userId} - ${req.session.writePermission} - ${req.session.boardId}`);
     if (!req.session.boardId) {
@@ -134,8 +140,15 @@ app.post('/save/:boardId', async(req, res) => {
     res.send('Saved successfully')
 })
 
+app.get('/error', (req, res) => {
+    const title = req.query.title || "Erreur";
+    const message = req.query.message || "Une erreur est survenue.";
+    res.render('error', { title: title, message: message });
+});
+
 process.on('uncaughtException', function (err) {
     console.log(err);
+    console.log(err.stack);
 }); 
 
 server.listen(port, () => {
