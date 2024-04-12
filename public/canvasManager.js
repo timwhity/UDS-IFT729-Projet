@@ -106,6 +106,8 @@ class CanvasManager {
             this.othersColors.set(userId, COLORS[Math.floor(Math.random() * COLORS.length)]);
         });
 
+        // Initialiser le compteur de présence des utilisateurs
+        this.updateCounter(obj.users.length);
         this.socket.emit("objet initialiser");
 
     }
@@ -249,11 +251,13 @@ class CanvasManager {
         this.logger.debug('User connected : ' + userId);
         let color = COLORS[Math.floor(Math.random() * COLORS.length)];
         this.othersColors.set(userId, color);
+        this.updateCounter(this.othersColors.size);
     }
     handleUserDisconnected(userId) { // Un autre utilisateur s'est déconnecté
         this.logger.debug('User disconnected : ' + userId);
         this.othersColors.delete(userId);
         this.selectedByOthersObjectIds.delete(userId);
+        this.updateCounter(this.othersColors.size);
     }
 
     //================================= BUTTONS ==================================
@@ -374,6 +378,11 @@ class CanvasManager {
         for (const obj of canvas.getActiveObjects()) {
             canvas.remove(obj);
         }
+    }
+
+    updateCounter(count) { // Mise à jour du compteur
+        this.logger.debug('Counter updated : ' + count);
+        document.querySelector('.active-users').textContent = `${count} actifs`;
     }
 
     saveCanvas() {
