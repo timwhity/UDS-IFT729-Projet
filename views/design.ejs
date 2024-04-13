@@ -457,7 +457,6 @@
     var writePermission = '<%= writePermission %>' === 'true';
     var action = "";
     const icons = Array.from(document.querySelectorAll('.icons div'))
-    console.log(icons)
         //icons.addEventListener('')
     if (writePermission) {
         icons.forEach((icon, pos) => icon.addEventListener('click', (e) => myFunction(e)))
@@ -474,7 +473,6 @@
     }
 
     function myFunction(e) {
-        console.log(e)
         const icons = Array.from(document.querySelectorAll('.icons div'))
 
         icons.forEach(icon => {
@@ -487,7 +485,6 @@
         if(e.currentTarget.classList.contains("hand-icon")){
             canvas.setAction("");
         }
-        console.log(e.target)
 
     }
 
@@ -524,7 +521,6 @@
 
     // Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
     document.getElementById('addRect').addEventListener('click', function() {
-        console.log('creating rectangle')
         action = 'addRect';
         canvasManager.setAction(action);
        // canvasManager.createRec();
@@ -546,7 +542,6 @@
     });
 
     document.getElementById('addCircle').addEventListener('click', function() {
-        console.log('creating rectangle')
         action='addCircle';
         canvasManager.setAction(action);
        // canvasManager.createCircle();
@@ -559,21 +554,18 @@
     });
 
     document.getElementById('addTriangle').addEventListener('click', function() {
-        console.log('creating rectangle')
         action='addTriangle';
         canvasManager.setAction(action);
         //canvasManager.createTriangle();
     });
 
     document.getElementById('addText').addEventListener('click', function() {
-        console.log('creating Text')
         action='addText';
         canvasManager.setAction(action);
        // canvasManager.addText();
     });
 
     document.getElementById('addDraw').addEventListener('click', function() {
-        console.log('creating draw');
         action='addPencil';
         canvasManager.setAction(action);
        // canvasManager.addText();
