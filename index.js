@@ -95,7 +95,6 @@ app.get('/disconnect', (req, res) => {
 });
 
 app.get('/draw', (req, res) => {
-    logger.debug(`user ${req.session.userId} is joined room ${req.session.boardId}`);
     if (!req.session.boardId) {
         res.render('error404');
     } else {
@@ -106,6 +105,7 @@ app.get('/draw', (req, res) => {
             userId: userId,
             writePermission: writePermission
         });
+        logger.debug(`user ${req.session.userId} is joining board ${req.session.boardId}`);
     }
 })
 

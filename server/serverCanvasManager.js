@@ -16,7 +16,7 @@ class serverCanvasManager {
     init() {
         this.io.on('connection', async(socket) => {
             // On attend un message d'initialisation de l'utilisateur pour lui donner ses droits
-            socket.on('connection-asked', this.measureResponseTime(async(boardId, userId, writePermission) => {
+            socket.on('connection-asked', this.measureResponseTime('connection-asked', async(boardId, userId, writePermission) => {
                 this.logger.debug('User ' + userId + ' asked for initialization for board ' + boardId + ' with writePermission ' + writePermission);
                 if (this.connectedUsers.has(userId)) {
                     this.logger.warn('User ' + userId + ' already initialized');
@@ -51,14 +51,14 @@ class serverCanvasManager {
 
             }));
 
-            socket.on("objet initialiser", this.measureResponseTime(()=>{
+            socket.on("objet initialiser", this.measureResponseTime("objet initialiser", ()=>{
                 this.connectedUsers.forEach((value,key, map) => {
                     this.logger.debug('User ' + key + ' selection: ' + value["selectedObjectsIds"]);
                     socket.emit('objects selected',{ userId: key, objectIds: value["selectedObjectsIds"] })
                 })
             }));
 
-            socket.on('object modified', this.measureResponseTime((object) => {
+            socket.on('object modified', this.measureResponseTime('object modified', (object) => {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
@@ -67,13 +67,13 @@ class serverCanvasManager {
                 socket.to(boardId).emit('object modified', object);
             }));
 
-            socket.on("object moving", this.measureResponseTime((object) => {
+            socket.on("object moving", this.measureResponseTime("object moving", (object) => {
                 if (!this.checkRights(socket)) return;
                 this.logger.debug('object moved');
                 socket.broadcast.emit('object modified', object);
             }));
 
-            socket.on('object added', this.measureResponseTime((object) => {
+            socket.on('object added', this.measureResponseTime('object added', (object) => {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
@@ -81,7 +81,7 @@ class serverCanvasManager {
                 this.boardsObjetcs[boardId].push(object);
                 socket.to(boardId).emit('object added', object);
             }));
-            socket.on('object removed', this.measureResponseTime((object) => {
+            socket.on('object removed', this.measureResponseTime('object removed', (object) => {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
@@ -89,7 +89,7 @@ class serverCanvasManager {
                 this.boardsObjetcs[boardId].splice(this.boardsObjetcs[boardId].findIndex(obj => (obj.id == object.id)), 1);
                 socket.to(boardId).emit('object removed', object);
             }));
-            socket.on('objects selected', this.measureResponseTime((objectIds) => {
+            socket.on('objects selected', this.measureResponseTime('objects selected', (objectIds) => {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
@@ -97,7 +97,7 @@ class serverCanvasManager {
                 this.connectedUsers.get(this.socketId2Id.get(socket.id))["selectedObjectsIds"] = objectIds;
                 socket.to(boardId).emit('objects selected', { userId: this.socketId2Id.get(socket.id), objectIds: objectIds });
             }));
-            socket.on('objects deselected', this.measureResponseTime(() => {
+            socket.on('objects deselected', this.measureResponseTime('objects deselected', () => {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
@@ -106,7 +106,7 @@ class serverCanvasManager {
                 socket.to(boardId).emit('objects deselected', this.socketId2Id.get(socket.id));
             }));
 
-            socket.on('disconnect', this.measureResponseTime(async() => {
+            socket.on('disconnect', this.measureResponseTime('disconnect', async() => {
                 const userId = this.socketId2Id.get(socket.id);
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
@@ -123,9 +123,6 @@ class serverCanvasManager {
                     await saveToDb(this.boardsObjetcs[boardId], boardId)
                     this.logger.debug('Board ' + boardId + ' is empty, saving it to the database');
                 }
-
-                // Attendre 500 ms
-                await new Promise(resolve => setTimeout(resolve, 500));
             }));
         });
     }
@@ -170,13 +167,13 @@ class serverCanvasManager {
         return true;
     }
 
-    measureResponseTime(handler) {
-        return async function(...args) {
+    measureResponseTime(name, handler) {
+        return async (...args) => {
             let t0 = performance.now();
             await handler.apply(this, args);
             let t1 = performance.now();
             if (t1 - t0 > 200) {
-                this.logger.warn("/!\\ Response time : " + (t1 - t0) + " ms !!");
+                this.logger.warn("/!\\ Response time of handler " + name + " was too long (" + (t1 - t0) + " ms) !!");
             }
         }
     }
