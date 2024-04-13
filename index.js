@@ -27,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const session = require('express-session');
 const { title } = require('process');
+const { log } = require('console');
 app.use(session({
     secret: "ezlkfqhmkjjkgt'eqrE4Yg('zyre('yrgE5YEZeghgjnJ.uydlM:oUOmgg",
     resave: false,
@@ -57,8 +58,7 @@ app.post('/join', async (req, res) => {
     req.session.userId = userId;
     req.session.boardId = roomId;
     req.session.writePermission = writePermission;
-
-    console.log(`Connection : ${userId} - ${writePermission}`);
+    logger.debug(`User ${userId} joined room ${roomId} with write permission ${writePermission}`);
     res.redirect('/draw');
 });
 
@@ -80,25 +80,22 @@ app.post('/create', async (req, res) => {
     req.session.userId = userId;
     req.session.boardId = roomId;
     req.session.writePermission = true;
-
-    console.log(`Creation : ${userId} - ${true}`);
     res.redirect('/draw');
+    logger.debug(`User ${userId} created room ${roomId}`);
 });
 
 app.post('/disconnect', (req, res) => {
-    console.log(`disconnect : ${req.session.userId} - ${req.session.writePermission} - ${req.session.boardId}`);
     req.session.destroy();
     res.redirect('/');
 });
 
 app.get('/disconnect', (req, res) => {
-    console.log(`disconnect : ${req.session.userId} - ${req.session.writePermission} - ${req.session.boardId}`);
     req.session.destroy();
     res.redirect('/');
 });
 
 app.get('/draw', (req, res) => {
-    console.log(`draw : ${req.session.userId} - ${req.session.writePermission} - ${req.session.boardId}`);
+    logger.debug(`user ${req.session.userId} is joined room ${req.session.boardId}`);
     if (!req.session.boardId) {
         res.render('error404');
     } else {
@@ -136,7 +133,7 @@ app.post('/save/:boardId', async(req, res) => {
         res.status(403).send('You are not allowed to access this board')
     }
     await saveToDb(req.body, boardId)
-    console.log('Saved successfully')
+    logger.debug(`Saved board ${boardId}`)
     res.send('Saved successfully')
 })
 
@@ -147,8 +144,7 @@ app.get('/error', (req, res) => {
 });
 
 process.on('uncaughtException', function (err) {
-    console.log(err);
-    console.log(err.stack);
+    logger.error(err);
 }); 
 
 server.listen(port, () => {
