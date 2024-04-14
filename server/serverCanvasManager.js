@@ -58,13 +58,14 @@ class serverCanvasManager {
                 })
             }));
 
-            socket.on('object modified', this.measureResponseTime('object modified', (object) => {
+            socket.on('object modified', this.measureResponseTime('object modified', async (object) => {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
                 this.logger.debug('object modified on board ' + boardId);
                 this.boardsObjetcs[boardId].splice(this.boardsObjetcs[boardId].findIndex(obj => (obj.id == object.id)), 1, object);
                 socket.to(boardId).emit('object modified', object);
+                 await saveToDb(this.boardsObjetcs[boardId], boardId)
             }));
 
             socket.on("object moving", this.measureResponseTime("object moving", (object) => {
@@ -73,21 +74,23 @@ class serverCanvasManager {
                 socket.broadcast.emit('object modified', object);
             }));
 
-            socket.on('object added', this.measureResponseTime('object added', (object) => {
+            socket.on('object added', this.measureResponseTime('object added', async (object) => {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
                 this.logger.debug('object added on board ' + boardId);
                 this.boardsObjetcs[boardId].push(object);
                 socket.to(boardId).emit('object added', object);
+                 await saveToDb(this.boardsObjetcs[boardId], boardId)
             }));
-            socket.on('object removed', this.measureResponseTime('object removed', (object) => {
+            socket.on('object removed', this.measureResponseTime('object removed', async (object) => {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
                 this.logger.debug('object removed on board ' + boardId);
                 this.boardsObjetcs[boardId].splice(this.boardsObjetcs[boardId].findIndex(obj => (obj.id == object.id)), 1);
                 socket.to(boardId).emit('object removed', object);
+                 await saveToDb(this.boardsObjetcs[boardId], boardId)
             }));
             socket.on('objects selected', this.measureResponseTime('objects selected', (objectIds) => {
                 if (!this.checkRights(socket)) return;
