@@ -8,41 +8,72 @@
     <script src="logger.js"></script>
 
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
         .title {
-            position: fixed;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1;
-			background-color: aquamarine;
-			padding: 10px;
-			border-radius: 20px;
-			border: 2px solid rgb(102, 94, 94);
+            text-align: center;
+            background-color: #3498db;
+            color: white;
+            padding: 20px 0;
+            border-radius: 0;
+            border: none;
+            font-size: 2em;
+            margin-bottom: 50px;
         }
         .info {
-            position: fixed;
-            top: 6%;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1;
-			padding: 10px; 
+            text-align: center;
+            padding: 10px;
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 50px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 50px;
+            margin: 0 80px;
         }
         .menu {
-            position: fixed;
-            top: 30%;
-            z-index: 1;
-			padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            padding: 20px;
         }
-        .formLabel{
-            position: fixed;
-            left: 40%;
+        .menu h3 {
+            text-align: center;
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
         }
-        .formInput{
-            position: fixed;
-            left: 52%;
+        .formLabel {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
         }
-        textarea {
-            resize: none;
+        .formInput {
+            width: 97%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2980b9;
         }
 
     </style>
@@ -52,21 +83,40 @@
 	<h1 class="title">Tableau Blanc</h1>
 	<br>
     <h2 class="info">Bienvenue sur Tableau Blanc une application qui vous permet de partager vos idées en temps réel avec votre équipe créative</h2>
-	<div class="menu">
-		<form class="connectForm" method="post" action="/">
-			<label class="formLabel" for="userIdLb">Votre idenfiant</label>
-			<input class="formInput" id="userId" type="text" name="userId"><br>
-			<br>
-			<!-- <label class="formLabel" for="roomLb">Code de tableau a rejoindre</label>
-            <input class="formInput" id="room" type="text" name="roomLb" onkeyup="success()"><br>
-            <br> -->
-			<label class="formLabel" for="mdpLb">Mot de passe du tableau</label>
-			<input class="formInput" id="mdp" type="text" name="mdp"><br>
-			<br>
-			<button type="submit" id="btn_create" style="position: fixed; left:45%" disabled>Créer salle</button>
-			<button type="submit" id="btn_join" style=" position: fixed; left:50%">Rejoindre salle</button>
-		</form>
-	</div>
+
+    <!-- Grille avec deux formulaires : un pour créer une salle et l'autre pour en rejoindre une : -->
+    <div class="grid">
+        <div class="menu">
+            <h3>Rejoindre une salle</h3>
+            <form class="connectForm" method="post" action="/join">
+                <label class="formLabel" for="userIdLb">Votre idenfiant</label>
+                <input class="formInput" id="userId" type="text" name="userId"><br>
+                <br>
+                <label class="formLabel" for="roomIdLb">Identifiant du tableau à rejoindre</label>
+                <input class="formInput" id="roomId" type="text" name="roomId"><br>
+                <br>
+                <label class="formLabel" for="mdpLb">Mot de passe du tableau (laissez vide si vous ne le connaissez pas)</label>
+                <input class="formInput" id="mdp" type="text" name="mdp"><br>
+                <br>
+                <button type="submit" id="btn_join">Rejoindre la salle</button>
+            </form>
+        </div>
+        <div class="menu">
+            <h3>Créer une salle</h3>
+            <form class="createForm" method="post" action="/create">
+                <label class="formLabel" for="userIdCreateLb">Votre idenfiant</label>
+                <input class="formInput" id="userIdCreate" type="text" name="userIdCreate"><br>
+                <br>
+                <label class="formLabel" for="roomIdLb">Identifiant du tableau (permettant de le rejoindre en lecture)</label>
+                <input class="formInput" id="roomIdCreate" type="text" name="roomIdCreate"><br>
+                <br>
+                <label class="formLabel" for="mdpLb">Mot de passe du tableau (permettant de le rejoindre en écriture)</label>
+                <input class="formInput" id="mdpCreate" type="text" name="mdpCreate"><br>
+                <br>
+                <button type="submit" id="btn_create">Créer la salle</button>
+            </form>
+        </div>
+    </div>
 </body>
 <script>
 	const logLevel = 'DEBUG';
@@ -78,6 +128,33 @@
         if (!userId) {
             event.preventDefault();
             alert('Veuillez donner votre identifiant');
+            return;
+        }
+        var room = document.getElementById('roomId').value;
+        if (!room) {
+            event.preventDefault();
+            alert('Veuillez donner le code de la salle');
+        }
+    });
+
+    document.getElementById('btn_create').addEventListener('click', function(event) {
+        var userId = document.getElementById('userIdCreate').value;
+        if (!userId) {
+            event.preventDefault();
+            alert('Veuillez donner votre identifiant');
+            return;
+        }
+        var room = document.getElementById('roomIdCreate').value;
+        if (!room) {
+            event.preventDefault();
+            alert('Veuillez donner un identifiant à la salle');
+            return;
+        }
+        var mdp = document.getElementById('mdpCreate').value;
+        if (!mdp) {
+            event.preventDefault();
+            alert('Veuillez donner un mot de passe à la salle');
+            return;
         }
     });
 

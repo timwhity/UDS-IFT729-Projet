@@ -159,9 +159,7 @@
     const commentButton = document.querySelector(".send--message")
 
     commentButton.addEventListener("click", () => {
-        console.log('clicked')
         reply = document.getElementsByTagName("textarea")[0].value
-        console.log(reply)
         if (reply != "") {
             createComment(reply, "Johan")
         }
@@ -176,12 +174,10 @@
     const button = document.getElementById('load')
 
     button.addEventListener('click', async() => {
-        console.log('CLicked')
         loadCanvas()
     })
 
     async function loadCanvas() {
-        console.log('loading canvas')
         try {
             const response = await fetch('http://localhost:3000/getLoad'); // Replace the URL with the actual endpoint
 

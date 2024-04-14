@@ -14,7 +14,7 @@ const ServerCanvasManager = require('./server/serverCanvasManager.js');
 const serverCanvas = new ServerCanvasManager(io, logger);
 
 // Connection a la base de données
-const { loadFromDb, saveToDb } = require('./server/connectionDb.js')
+const { loadFromDb, saveToDb, createBoard, getBoard } = require('./server/connectionDb.js')
 
 
 app.set('view engine', 'ejs');
@@ -26,6 +26,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const session = require('express-session');
+const { title } = require('process');
+const { log } = require('console');
 app.use(session({
     secret: "ezlkfqhmkjjkgt'eqrE4Yg('zyre('yrgE5YEZeghgjnJ.uydlM:oUOmgg",
     resave: false,
@@ -37,57 +39,113 @@ app.get('/', (req, res) => {
 });
 
 // Quand on recoit une requete post sur '/' avec "id" et "mdp" 
-app.post('/', (req, res) => {
+app.post('/join', async (req, res) => {
     const userId = req.body.userId;
+    const roomId = req.body.roomId;
     const mdp = req.body.mdp;
 
-    // Vérification mot de passe 
-    // TODO changer cela
-    const writePermission = (mdp === "admin")
+    const password = await getBoard(roomId);
+    if (!password) {
+        res.render('error', { title: "Erreur", message: "La salle n'existe pas." });
+        return;
+    }
+    if (mdp && password !== mdp) {
+        res.render('error', { title: "Mot de passe incorrect.", message: "Si vous souhaitez rejoindre la salle en lecture seule, laissez le champ vide." });
+        return;
+    }
+    const writePermission = (mdp && password === mdp);
 
     req.session.userId = userId;
-    req.session.boardId = 1; // Id de l'unique tableau pour le moment
+    req.session.boardId = roomId;
     req.session.writePermission = writePermission;
-
-    console.log(`Connection : ${userId} - ${writePermission}`);
+    logger.debug(`User ${userId} joined room ${roomId} with write permission ${writePermission}`);
     res.redirect('/draw');
 });
 
+app.post('/create', async (req, res) => {
+    const userId = req.body.userIdCreate;
+    const roomId = req.body.roomIdCreate;
+    const mdp = req.body.mdpCreate;
+
+    if (!userId || !roomId) {
+        res.render('error', { title: "Erreur", message: "Veuillez renseigner tous les champs." });
+        return;
+    }
+    if (await getBoard(roomId)) {
+        res.render('error', { title: "Erreur", message: "La salle existe déjà." });
+        return;
+    }
+    await createBoard(roomId, mdp);
+
+    req.session.userId = userId;
+    req.session.boardId = roomId;
+    req.session.writePermission = true;
+    res.redirect('/draw');
+    logger.debug(`User ${userId} created room ${roomId}`);
+});
+
+app.post('/disconnect', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
+});
+
+app.get('/disconnect', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
+});
+
 app.get('/draw', (req, res) => {
-    console.log(`draw : ${req.session.userId} - ${req.session.writePermission} - ${req.session.boardId}`);
-    if (!req.session.boardId || req.session.boardId != 1) {
+    if (!req.session.boardId) {
         res.render('error404');
     } else {
-        const { userId, writePermission } = req.session;
+        const { boardId, userId, writePermission } = req.session;
 
         res.render('design', {
+            boardId: boardId,
             userId: userId,
             writePermission: writePermission
         });
+        logger.debug(`user ${req.session.userId} is joining board ${req.session.boardId}`);
     }
 })
 
 app.get('/', (req, res) => {
-    // Traitement sur l'url, sur les cookies, ... 
     res.render('\index')
 });
 
 
-app.get('/getLoad', async(req, res) => {
-    const data = await loadFromDb()
+app.get('/load/:boardId', async(req, res) => { 
+    const boardId = req.params.boardId
+    if (req.session.boardId !== boardId) {
+        res.status(403).send('You are not allowed to access this board')
+    }
+    if (!boardId) {
+        res.status(400).send('boardId is required')
+    }
+    const data = await loadFromDb(boardId)
     res.json(data)
 })
 
 
-app.get('/load', (req, res) => res.render('load'))
-
-
-app.post('/database', async(req, res) => {
-    console.log(req.body)
-    await saveToDb(req.body)
-    console.log('Saved successfully')
-    res.send('working boy')
+app.post('/save/:boardId', async(req, res) => {
+    const boardId = req.params.boardId
+    if (req.session.boardId !== boardId || !req.session.writePermission) {
+        res.status(403).send('You are not allowed to access this board')
+    }
+    await saveToDb(req.body, boardId)
+    logger.debug(`Saved board ${boardId}`)
+    res.send('Saved successfully')
 })
+
+app.get('/error', (req, res) => {
+    const title = req.query.title || "Erreur";
+    const message = req.query.message || "Une erreur est survenue.";
+    res.render('error', { title: title, message: message });
+});
+
+process.on('uncaughtException', function (err) {
+    logger.error(err);
+}); 
 
 server.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`);
