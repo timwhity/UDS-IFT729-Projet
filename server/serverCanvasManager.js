@@ -110,25 +110,20 @@ class serverCanvasManager {
                  await saveToDb(this.boardsObjetcs[boardId], boardId)
             }));
             socket.on('objects selected', this.measureResponseTime('objects selected', async (objectIds) => {
-
-                // wait 1 seconde
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
 
                 const userId = this.socketId2Id.get(socket.id);
                 for (let i = 0; i < objectIds.length; i++) {
-                    this.connectedUsers.forEach((value, key) => {
+                    for (let [key, value] of this.connectedUsers.entries()) {
                         if (key != userId && value.selectedObjectsIds.includes(objectIds[i])) {
                             this.logger.warn('User ' + key + ' already selected object ' + objectIds[i]);
                             socket.emit('refresh', 'Erreur de synchronisation')
                             return;
                         }
-                    });
+                    }
                 }
-
                 this.logger.debug('objects selected on board ' + boardId);
                 this.connectedUsers.get(this.socketId2Id.get(socket.id)).selectedObjectsIds = objectIds;
                 socket.to(boardId).emit('objects selected', { userId: this.socketId2Id.get(socket.id), objectIds: objectIds });
