@@ -31,6 +31,7 @@ class CanvasManager {
         this.socket.on('objects deselected', this.handleObjectsDeselected.bind(this));
         this.socket.on('user connected', this.handleUserConnected.bind(this));
         this.socket.on('user disconnected', this.handleUserDisconnected.bind(this));
+        this.socket.on('refresh', this.refresh.bind(this));
         // Client -> Server
         this.canvas.on('object:modified', this.emitObjectModified.bind(this));
         this.canvas.on('object:moving', this.emitObjectMoving.bind(this));
@@ -258,6 +259,11 @@ class CanvasManager {
         this.othersColors.delete(userId);
         this.selectedByOthersObjectIds.delete(userId);
         this.updateCounter(this.othersColors.size);
+    }
+    refresh(message) { // Rafraîchir la page
+        // window.location.reload();
+        this.logger.debug('Refresh asked by the server (' + message + ')');
+        alert('The server has requested a refresh. Please save your work and refresh the page.');
     }
 
     //================================= BUTTONS ==================================

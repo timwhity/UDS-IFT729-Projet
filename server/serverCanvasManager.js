@@ -52,9 +52,9 @@ class serverCanvasManager {
             }));
 
             socket.on("objet initialiser", this.measureResponseTime("objet initialiser", ()=>{
-                this.connectedUsers.forEach((value,key, map) => {
-                    this.logger.debug('User ' + key + ' selection: ' + value["selectedObjectsIds"]);
-                    socket.emit('objects selected',{ userId: key, objectIds: value["selectedObjectsIds"] })
+                this.connectedUsers.forEach((value, key) => {
+                    this.logger.debug('User ' + key + ' selection: ' + value.selectedObjectsIds);
+                    socket.emit('objects selected',{ userId: key, objectIds: value.selectedObjectsIds });
                 })
             }));
 
@@ -62,6 +62,11 @@ class serverCanvasManager {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
+                if (!object.id) {
+                    socket.emit('error', 'Erreur : Non implémenté !', 'Merci de vous reconnecter !');
+                    return;
+                }
+                if (!this.checkIfUserCanModify(socket, [object.id])) return;
                 this.logger.debug('object modified on board ' + boardId);
                 this.boardsObjetcs[boardId].splice(this.boardsObjetcs[boardId].findIndex(obj => (obj.id == object.id)), 1, object);
                 socket.to(boardId).emit('object modified', object);
@@ -70,6 +75,13 @@ class serverCanvasManager {
 
             socket.on("object moving", this.measureResponseTime("object moving", (object) => {
                 if (!this.checkRights(socket)) return;
+                const boardId = this.getBoardId(socket);
+                if (!boardId) return;
+                if (!object.id) {
+                    socket.emit('error', 'Erreur : Non implémenté !', 'Merci de vous reconnecter !');
+                    return;
+                }
+                if (!this.checkIfUserCanModify(socket, [object.id])) return;
                 this.logger.debug('object moved');
                 socket.broadcast.emit('object modified', object);
             }));
@@ -87,17 +99,33 @@ class serverCanvasManager {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
+                if (!object.id) {
+                    socket.emit('error', 'Erreur : Non implémenté !', 'Merci de vous reconnecter !');
+                    return;
+                }
+                if (!this.checkIfUserCanModify(socket, [object.id])) return;
                 this.logger.debug('object removed on board ' + boardId);
                 this.boardsObjetcs[boardId].splice(this.boardsObjetcs[boardId].findIndex(obj => (obj.id == object.id)), 1);
                 socket.to(boardId).emit('object removed', object);
                  await saveToDb(this.boardsObjetcs[boardId], boardId)
             }));
-            socket.on('objects selected', this.measureResponseTime('objects selected', (objectIds) => {
+            socket.on('objects selected', this.measureResponseTime('objects selected', async (objectIds) => {
                 if (!this.checkRights(socket)) return;
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
+
+                const userId = this.socketId2Id.get(socket.id);
+                for (let i = 0; i < objectIds.length; i++) {
+                    for (let [key, value] of this.connectedUsers.entries()) {
+                        if (key != userId && value.selectedObjectsIds.includes(objectIds[i])) {
+                            this.logger.warn('User ' + key + ' already selected object ' + objectIds[i]);
+                            socket.emit('refresh', 'Erreur de synchronisation')
+                            return;
+                        }
+                    }
+                }
                 this.logger.debug('objects selected on board ' + boardId);
-                this.connectedUsers.get(this.socketId2Id.get(socket.id))["selectedObjectsIds"] = objectIds;
+                this.connectedUsers.get(this.socketId2Id.get(socket.id)).selectedObjectsIds = objectIds;
                 socket.to(boardId).emit('objects selected', { userId: this.socketId2Id.get(socket.id), objectIds: objectIds });
             }));
             socket.on('objects deselected', this.measureResponseTime('objects deselected', () => {
@@ -105,7 +133,7 @@ class serverCanvasManager {
                 const boardId = this.getBoardId(socket);
                 if (!boardId) return;
                 this.logger.debug('objects deselected on board ' + boardId);
-                this.connectedUsers.get(this.socketId2Id.get(socket.id))["selectedObjectsIds"] = [];
+                this.connectedUsers.get(this.socketId2Id.get(socket.id)).selectedObjectsIds = [];
                 socket.to(boardId).emit('objects deselected', this.socketId2Id.get(socket.id));
             }));
 
@@ -166,6 +194,20 @@ class serverCanvasManager {
             this.logger.warn('User ' + userId + ' does not have the rights to do this action');
             socket.emit('error', 'Erreur : vous n\'avez pas les droits pour effectuer cette action', 'Merci de vous reconnecter !');
             return false;
+        }
+        return true;
+    }
+
+    checkIfUserCanModify(socket, objectIds) {
+        const userId = this.socketId2Id.get(socket.id);
+        const userInfos = this.connectedUsers.get(userId);
+        for (let i = 0; i < objectIds.length; i++) {
+            if (!userInfos.selectedObjectsIds.includes(objectIds[i])) {
+                this.logger.warn('User ' + userId + ' does not have the rights to modify object ' + objectIds[i]);
+                console.log(userInfos.selectedObjectsIds)
+                socket.emit('error', 'Erreur : vous n\'avez pas les droits pour effectuer cette action', 'Merci de vous reconnecter !');
+                return false;
+            }
         }
         return true;
     }
