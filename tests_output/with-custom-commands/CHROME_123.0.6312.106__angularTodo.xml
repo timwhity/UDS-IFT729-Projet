@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="0"
+            failures="0"
+            tests="1">
+
+  <testsuite name="with-custom-commands.angularTodo"
+    errors="0" failures="0" hostname="" id="" package="with-custom-commands" skipped="0"
+    tests="1" time="18.01" timestamp="">
+  
+    <testcase name="should add a todo using custom commands" classname="with-custom-commands.angularTodo" time="9.001" assertions="2">
+
+    
+
+    
+    </testcase>
+  
+
+  
+
+    
+
+  
+  </testsuite>
+</testsuites>

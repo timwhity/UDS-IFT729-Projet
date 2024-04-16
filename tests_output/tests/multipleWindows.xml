@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="1"
+            failures="0"
+            tests="0">
+
+  <testsuite name="tests.multipleWindows"
+    errors="1" failures="0" hostname="" id="" package="multipleWindows" skipped="3"
+    tests="0" time="0.001000" timestamp="">
+  
+
+  
+    <system-err>
+       An error occurred while creating a new ChromeDriver session: [Error] Cannot find module &#39;../../package.json&#39;
+Require stack:
+- U:\Projet IFT729\UDS-IFT729-Projet\node_modules\nightwatch\lib\http\request.js
+- U:\Projet IFT729\UDS-IFT729-Projet\node_modules\nightwatch\lib\core\client.js
+- U:\Projet IFT729\UDS-IFT729-Projet\node_modules\nightwatch\lib\index.js
+- U:\Projet IFT729\UDS-IFT729-Projet\node_modules\nightwatch\lib\runner\concurrency\task.js
+- U:\Projet IFT729\UDS-IFT729-Projet\node_modules\piscina\dist\src\worker.js
+  Verify if ChromeDriver is configured correctly; using:
+  {
+     start_process: true,
+     server_path: &#39;&#39;,
+     port: undefined,
+     host: &#39;localhost&#39;,
+     ssl: false,
+     default_path_prefix: &#39;&#39;,
+     proxy: undefined,
+     cli_args: {}
+  }
+
+ 
+  Set webdriver.log_path in your Nightwatch config to retrieve more logs from ChromeDriver.
+ WebDriverError:   Unable to navigate to url http://localhost:3000: unknown error: net::ERR_CONNECTION_REFUSED
+  (Session info: chrome=123.0.6312.123)
+ Error
+   Timed out while waiting for element &#34;By(css selector, #userIdCreate)&#34; to be present for 5000 milliseconds.
+ Error
+   Timed out while waiting for element &#34;By(css selector, #roomIdCreate)&#34; to be present for 5000 milliseconds.
+ Error
+   Timed out while waiting for element &#34;By(css selector, #mdpCreate)&#34; to be present for 5000 milliseconds.
+ Error
+   Timed out while waiting for element &#34;By(css selector, #userIdCreate)&#34; to be present for 5000 milliseconds.
+ Error
+   Timed out while waiting for element &#34;By(css selector, #roomIdCreate)&#34; to be present for 5000 milliseconds.
+ Error
+   Timed out while waiting for element &#34;By(css selector, #mdpCreate)&#34; to be present for 5000 milliseconds.
+ Error
+   Timed out while waiting for element &#34;By(css selector, #btn_create)&#34; to be present for 5000 milliseconds.
+ Error
+   Timed out while waiting for element &#34;By(css selector, #lock)&#34; to be present for 5000 milliseconds.
+ WebDriverError
+   Error while running &#34;navigateTo&#34; command: [WebDriverError] Unable to navigate to url http://localhost:3000: unknown error: net::ERR_CONNECTION_REFUSED
+  (Session info: chrome=123.0.6312.123)
+
+    Error location:
+    U:\Projet IFT729\UDS-IFT729-Projet\tests\connexion.js:16
+    –––––––––––––––––––––––––––––––––––––––––––––––––––––––
+     14 |    it(&#39;Création de la salle par remplissage des champs&#39;, async function() {
+     15 |       await browser
+     16 |         .navigateTo(&#39;http://localhost:3000&#39;); 
+     17 |     
+     18 |         await browser.element.find(&#39;#userIdCreate&#39;);
+    –––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+    </system-err>
+  
+
+    
+    <error message=""><![CDATA[
+      
+      ]]></error>  
+
+  
+    
+    <testcase
+      name="switch to another window" classname="tests.multipleWindows">
+      <skipped />
+    </testcase>
+    
+    <testcase
+      name="Validate URL and Text in New Window" classname="tests.multipleWindows">
+      <skipped />
+    </testcase>
+    
+    <testcase
+      name="Come back to the first window from second window and validate Text and URL" classname="tests.multipleWindows">
+      <skipped />
+    </testcase>
+    
+  
+  </testsuite>
+</testsuites>

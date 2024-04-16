@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="0"
+            failures="0"
+            tests="1">
+
+  <testsuite name="accessibilty-tests.websiteAccessibility"
+    errors="0" failures="0" hostname="" id="" package="accessibilty-tests" skipped="0"
+    tests="1" time="8.017" timestamp="">
+  
+    <testcase name="Nightwatch website page has accessible headers" classname="accessibilty-tests.websiteAccessibility" time="0.6790" assertions="2">
+
+    
+
+    
+    </testcase>
+  
+
+  
+
+    
+
+  
+  </testsuite>
+</testsuites>
