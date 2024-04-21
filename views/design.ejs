@@ -455,11 +455,14 @@
     var boardId = '<%= boardId %>';
     var userId = '<%= userId %>';
     var writePermission = '<%= writePermission %>' === 'true';
+    console.log("============== writePermission ============ ", writePermission);
     var action = "";
     const icons = Array.from(document.querySelectorAll('.icons div'))
         //icons.addEventListener('')
     if (writePermission) {
-        icons.forEach((icon, pos) => icon.addEventListener('click', (e) => myFunction(e)))
+        icons.forEach((icon, pos) => {
+            icon.addEventListener('click', (e) => myFunction(e))
+        })
     } else {
         icons.forEach(icon => {
             if (!icon.classList.contains("hand-icon")) {
@@ -480,7 +483,7 @@
                 icon.classList.remove("active");
 
         });
-        e.currentTarget.
+        console.log("============== e object ============= ", e);
         e.currentTarget.classList.toggle('active')
         if(e.currentTarget.classList.contains("hand-icon")){
             canvas.setAction("");
@@ -521,6 +524,7 @@
 
     // Fait en sorte que le bouton "addRect" créer un nouveau rectangle rouge et le sélectionne
     document.getElementById('addRect').addEventListener('click', function() {
+        console.log("============== addRect ============== ", addRect);
         action = 'addRect';
         canvasManager.setAction(action);
        // canvasManager.createRec();

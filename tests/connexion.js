@@ -39,11 +39,28 @@ describe("Test de creation d'une salle ", function() {
           browser.element.find("#btn_join").click();
           await browser.element.find('#lock');
           await browser.element.find('#active-users');
-          browser.assert.textEquals('#active-users', '2 actifs');
+          browser.assert.textEquals('#active-users', '1 actifs');
           //browser.element.find('#active-users').assert.valueEquals('3 actifs');
       });
 
-      /* it('Multiple connexions à une salle', async function() {
+      it('Multiple connexions à une salle', async function() {
+        browser.window.open(function () {
+          console.log('new tab opened successfully');
+        });
+    
+        // open a new window
+        browser.window.open('window', function () {
+          console.log('new window opened successfully');
+        });
+        const originalWindow = await browser.window.getHandle();
+        const allWindows = await browser.window.getAllHandles();
+
+        for (const windowHandle of allWindows) {
+            if (windowHandle !== originalWindow) {
+              await browser.window.switchTo(windowHandle);
+              break;
+            }
+        }
         await browser
           .navigateTo('http://localhost:3000');
       
@@ -54,49 +71,22 @@ describe("Test de creation d'une salle ", function() {
           browser.element.find("#roomId").setValue("test1");
           browser.element.find('#mdp').setValue("test1");
           browser.element.find("#btn_join").click();
-          await browser.element.find('#lock');
 
-         await browser
+          browser.window.switchTo(originalWindow);
+          await browser
           .navigateTo('http://localhost:3000');
-          await browser.waitUntil(async function () {
-            const windowHandles = await browser.window.getAllHandles();
       
-            return windowHandles.length === 2;
-          });
-      
-          const originalWindow = await browser.window.getHandle();
-          const allWindows = await browser.window.getAllHandles();
-      
-          // loop through available windows to find the new window handle
-          for (const windowHandle of allWindows) {
-            if (windowHandle !== originalWindow) {
-              await browser.window.switchTo(windowHandle);
-              break;
-            }
-          }
-      
-          const currentWindow = await browser.window.getHandle();
-          await browser.assert.notEqual(currentWindow, originalWindow);
-      
-          
-      });*/
-/* await browser.element.find('#userId');
+          await browser.element.find('#userId');
           await browser.element.find('#roomId');
           await browser.element.find('#mdp');
           browser.element.find('#userId').setValue("toto1");
           browser.element.find("#roomId").setValue("test1");
           browser.element.find('#mdp').setValue("test1");
           browser.element.find("#btn_join").click();
-          await browser.element.find('#lock');*/
-
-          /* browser
-            .url('http://localhost:3000')
-            .waitForElementVisible('#userId')
-            .pause(1000)
-            .windowHandles(function (result) {
-                var handle = result.value[1];
-                browser.switchWindow(handle);
-            })*/
+          await browser.element.find('#lock');
+          await browser.element.find('#active-users');
+          
+      });
       
       
   

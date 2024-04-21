@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="0"
+            failures="1"
+            tests="2">
+
+  <testsuite name="tests.connexion"
+    errors="0" failures="1" hostname="" id="" package="connexion" skipped="0"
+    tests="2" time="21.72" timestamp="">
+  
+    <testcase name="Création de la salle par remplissage des champs" classname="tests.connexion" time="4.875" assertions="0">
+    </testcase>
+  
+    <testcase name="Connexion à une salle" classname="tests.connexion" time="5.970" assertions="1">  <failure message="Testing if element&#39;s &lt;#active-users&gt; inner text equals &#39;2 actifs&#39; in 5000ms - expected &#34;equals &#39;2 actifs&#39;&#34; but got: &#34;1 actifs&#34; (5377ms)">    at DescribeInstance.&lt;anonymous&gt; (U:\Projet IFT729\UDS-IFT729-Projet\tests\connexion.js:42:26)</failure>
+
+    
+    </testcase>
+  
+
+  
+
+    
+
+  
+  </testsuite>
+</testsuites>

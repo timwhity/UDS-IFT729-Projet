@@ -5,12 +5,12 @@
 
   <testsuite name="tests.connexion"
     errors="0" failures="0" hostname="" id="" package="connexion" skipped="0"
-    tests="2" time="13.72" timestamp="">
+    tests="2" time="12.32" timestamp="">
   
-    <testcase name="Création de la salle par remplissage des champs" classname="tests.connexion" time="6.330" assertions="0">
+    <testcase name="Création de la salle par remplissage des champs" classname="tests.connexion" time="5.292" assertions="0">
     </testcase>
   
-    <testcase name="Connexion à une salle" classname="tests.connexion" time="0.5280" assertions="1">
+    <testcase name="Connexion à une salle" classname="tests.connexion" time="0.8660" assertions="1">
 
     
     </testcase>

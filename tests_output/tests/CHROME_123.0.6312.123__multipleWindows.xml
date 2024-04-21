@@ -5,9 +5,10 @@
 
   <testsuite name="tests.multipleWindows"
     errors="0" failures="1" hostname="" id="" package="multipleWindows" skipped="0"
-    tests="1" time="23.62" timestamp="">
+    tests="1" time="11.30" timestamp="">
   
-    <testcase name="switch to another window" classname="tests.multipleWindows" time="11.25" assertions="1">  <failure message="Testing if element&#39;s &lt;#active-users&gt; inner text equals &#39;1 actifs&#39; in 5000ms - expected &#34;equals &#39;1 actifs&#39;&#34; but got: &#34;2 actifs&#34; (5287ms)">    at switch to another window (U:\Projet IFT729\UDS-IFT729-Projet\tests\multipleWindows.js:49:26)</failure>
+    <testcase name="switch to another window" classname="tests.multipleWindows" time="5.285" assertions="1">  <failure message="this.actions is not a function">TypeError: this.actions is not a function
+    at switch to another window (U:\Projet IFT729\UDS-IFT729-Projet\tests\multipleWindows.js:53:32)</failure>
 
     
     </testcase>

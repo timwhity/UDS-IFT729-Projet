@@ -10,7 +10,7 @@ module.exports = {
         await browser.element.find('#roomIdCreate');
         await browser.element.find('#mdpCreate');
     },
-    'switch to another window': async function (browser) {
+    "Multiple connexions à une salle avec ajout d'élement": async function (browser) {
             // open a new tab (default)
             browser.window.open(function () {
               console.log('new tab opened successfully');
@@ -20,10 +20,6 @@ module.exports = {
             browser.window.open('window', function () {
               console.log('new window opened successfully');
             });
-
-            browser.window.getAllHandles(function (result) {
-                console.log("=========== result ============== ", result);
-              });
             const originalWindow = await browser.window.getHandle();
             const allWindows = await browser.window.getAllHandles();
 
@@ -33,10 +29,8 @@ module.exports = {
                   break;
                 }
             }
-            
         await browser
           .navigateTo('http://localhost:3000');
-      
           await browser.element.find('#userId');
           await browser.element.find('#roomId');
           await browser.element.find('#mdp');
@@ -46,9 +40,19 @@ module.exports = {
           browser.element.find("#btn_join").click();
           await browser.element.find('#lock');
           await browser.element.find('#active-users');
-          // browser.assert.textEquals('#active-users', '1 actifs');
-
-
+          browser.element.find("#addRect").click();
+          await browser.element.find('canvas.upper-canvas');
+          const result = await browser.element('canvas.upper-canvas').getRect();
+          await browser.element.find('canvas.upper-canvas').click();
+          browser.element.find("#addCircle").click();
+          await browser.element.find('canvas.upper-canvas').click();
+          browser.element.find("#del").click();
+          let screenshot = browser.element.find('canvas.upper-canvas').takeScreenshot();
+          let firstScreenShot = null;
+          screenshot.then((screenshotData) => {
+              firstScreenShot =screenshotData;
+              require('fs/promises').writeFile('out1.png', screenshotData, 'base64');
+          });
           browser.window.switchTo(originalWindow);
           await browser
           .navigateTo('http://localhost:3000');
@@ -62,7 +66,12 @@ module.exports = {
           browser.element.find("#btn_join").click();
           await browser.element.find('#lock');
           await browser.element.find('#active-users');
-          // browser.assert.textEquals('#active-users', '2 actifs');
+          screenshot = browser.element.find('canvas.upper-canvas').takeScreenshot();
+          let lastScreenShot = null;
+            screenshot.then((screenshotData) => {
+                lastScreenShot =screenshotData;
+                require('fs/promises').writeFile('out.png', screenshotData, 'base64');
+            });
       },
 
     after: function (browser) {
